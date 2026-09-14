@@ -1,0 +1,7 @@
+name: paper-research
+version: 0.8.0
+description: >
+  Unified multi-source academic paper search merging OpenAlex (CrossRef/PubMed/arXiv),
+  CrossRef, Semantic Scholar, PubMed, Scopus (Elsevier), and Web of Science (Clarivate).
+  One query, cross-database retrieval, automatic deduplication, citation/date sorting,
+  JSON export. Use for 查文献/找文献/文献检索/学术搜索/查论文/跨库检索/文献综述检索/论文查新.

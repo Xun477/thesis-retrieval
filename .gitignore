@@ -1,0 +1,25 @@
+# Python 构建与缓存
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 检索运行产物（--out 生成的 JSON 缓存）
+scripts/*results*.json
+scripts/out*.json
+
+# 截图 OCR 产物（wos_snapshot.py 运行时生成）
+resources/wos_shots/
+
+# 本地配置（可能含真实 key / 用户偏好）
+resources/config/config.local.env
+resources/config/sources.env
+resources/config/preferences.env
+.env
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
