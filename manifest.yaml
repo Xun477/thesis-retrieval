@@ -1,7 +1,11 @@
 name: paper-research
 version: 0.9.0
-description: >
-  Unified multi-source academic paper search merging OpenAlex (CrossRef/PubMed/arXiv),
-  CrossRef, Semantic Scholar, PubMed, Scopus (Elsevier), and Web of Science (Clarivate).
-  One query, cross-database retrieval, automatic deduplication, citation/date sorting,
-  JSON export. Use for 查文献/找文献/文献检索/学术搜索/查论文/跨库检索/文献综述检索/论文查新.
+description: >-
+  Unified multi-source academic paper search across OpenAlex, CrossRef,
+  Semantic Scholar, PubMed, Scopus, and Web of Science with automatic
+  deduplication, citation/date sorting, JSON export, SCI journal quartile
+  (中科院分区) filtering, and WoS-only screenshot+OCR fallback. Use when
+  the user wants 查文献/找文献/文献检索/学术搜索/查论文/跨库检索/查引用数/
+  文献综述检索/论文查新, or to filter papers by journal quartile.
+license: MIT
+compatibility: Python 3.9+; WoS OCR fallback needs playwright + rapidocr_onnxruntime

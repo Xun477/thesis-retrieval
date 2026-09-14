@@ -1,11 +1,16 @@
 ---
 name: paper-research
-description: >
-  统一多源学术文献检索。一次查询跨 OpenAlex、CrossRef、Semantic Scholar、PubMed、
-  Scopus、Web of Science 六大库，自动去重、按引用/日期排序、支持 JSON 导出。
-  用于查文献/找论文/学术搜索/论文查新/文献综述检索/查引用数/跨库检索。
+description: >-
+  用户要查文献/找论文/跨库检索/查引用数/论文查新/写文献综述的检索部分时使用本 skill。
+  一次查询跨 OpenAlex、CrossRef、Semantic Scholar、PubMed、Scopus、Web of Science 六大库，
+  自动去重、按引用/日期排序、支持 JSON 导出；可按 SCI 中科院分区（1-4 区）和摘要筛选；
+  WoS 独有文献可用浏览器截图+OCR 兜底抓取。无论用户说"帮我搜一下关于X的论文"、
+  "查查X方向的文献"、"哪些论文被引最多"、"找几篇X的paper/文献"、"查这个期刊是几区"，都应用本 skill。
   英文触发: multi-source paper search, cross-database literature retrieval,
-  find highly-cited papers, arXiv/PubMed/Crossref/SemanticScholar/Scopus/WoS search.
+  find highly-cited papers, arXiv/PubMed/Crossref/SemanticScholar/Scopus/WoS search,
+  journal quartile filter.
+license: MIT
+compatibility: Python 3.9+; WoS OCR 兜底需 playwright + rapidocr_onnxruntime
 ---
 
 # paper-research — 统一多源学术检索
