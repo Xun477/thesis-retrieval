@@ -1,5 +1,5 @@
 name: paper-research
-version: 0.8.0
+version: 0.9.0
 description: >
   Unified multi-source academic paper search merging OpenAlex (CrossRef/PubMed/arXiv),
   CrossRef, Semantic Scholar, PubMed, Scopus (Elsevier), and Web of Science (Clarivate).

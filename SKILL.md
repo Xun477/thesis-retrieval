@@ -51,6 +51,12 @@ description: >
 - 优先用 `--out` JSON（abstract 字段完整）做筛选，避免文本截断。
 - 摘要缺失（PubMed/WoS/Scopus 默认不返回）：跨源已尽力兜底，缺失时按标题+期刊判断，标注"无摘要"。
 
+## SCI 分区筛选（中科院分区）
+- 分区偏好持久化在 `resources/config/preferences.env`（`ZONE_FILTER=always/once` + `ZONE_MIN=1-4`），首次运行询问，`--zone` / `--zone-mode` 临时覆盖。用户改偏好见 `docs/SCI分区筛选说明.md`。
+- 分区数据来自本地映射表 `resources/data/journal_zones.json`（期刊名→分区，1 区最高）。未知期刊**保留**并标注 `分区=?`。
+- 当偏好为 `always` 或本次选择了分区时，检索后按 `ZONE_MIN` 过滤：只保留分区 ≤ ZONE_MIN 的文献，高于的被放入 `--out` JSON 的 `dropped` 字段，并在文本输出标注 `分区=N`。
+- 分区表需用户按研究方向维护（从 LetPub 查中科院大类分区填入）；未收录期刊显示 `分区=?` 不误删。
+
 ## WoS 独有文献兜底（截图+OCR）
 - 当某文献只有 WoS 能查到（其他库查不到、也无 DOI），或需要 WoS 摘要/被引详情而 API 拿不到时：
   1. AI 用浏览器打开 WoS 搜索该文献，把结果页/详情页 URL 交给 `python scripts/wos_snapshot.py "<url>"`。

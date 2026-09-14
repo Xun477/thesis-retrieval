@@ -1,7 +1,8 @@
-# paper-research (v0.8.0)
+# paper-research (v0.9.0)
 
-统一多源学术文献检索 Skill。一次查询跨 **OpenAlex / CrossRef / Semantic Scholar / PubMed / Scopus / Web of Science** 六个学术库检索，自动去重、按引用/日期排序，支持 JSON 导出。WoS 独有文献（其他库查不到、也无 DOI）可用截图+OCR 兜底抓取。
+统一多源学术文献检索 Skill。一次查询跨 **OpenAlex / CrossRef / Semantic Scholar / PubMed / Scopus / Web of Science** 六个学术库检索，自动去重、按引用/日期排序，支持 JSON 导出。WoS 独有文献（其他库查不到、也无 DOI）可用截图+OCR 兜底抓取。支持按 **SCI 中科院分区**筛选。
 
+> v0.9.0：新增 SCI 中科院分区筛选（`--zone`，本地映射表 `resources/data/journal_zones.json`，偏好可持久化）。
 > v0.8.0：新增 WoS 截图+OCR 兜底脚本 `scripts/wos_snapshot.py`（Playwright 开浏览器 → 截图 → RapidOCR 识别）。
 > v0.7.0：新增摘要提取与按摘要筛选（初始化时选择偏好，可持久化）。
 > v0.6.0：修复 WoS 布尔运算符（OR/AND）导致的 HTTP 400，自动拆分顶层 OR。
@@ -11,17 +12,6 @@
 > v0.3.2：SKILL.md 改为纯 AI 指令风格。
 > v0.3.1：精简 SKILL.md，新增 `--list-sources` 运行时自查。
 > v0.3.0：新增 CrossRef、Semantic Scholar、PubMed 三个免费无需 key 的检索源。
-
-## 作为开源项目使用
-
-- **协议**：MIT（见 [LICENSE](LICENSE)）。可自由使用、修改、再分发。
-- **安装**：克隆仓库后直接运行脚本即可；Claude Code 用户可运行 `bash install.sh`
-  将其注册为 skill（在 `~/.claude/skills/` 建符号链接）。普通 Python 用户无需安装。
-- **隐私**：本仓库不含任何真实 API key 或个人配置。本地使用时：
-  - 把 `resources/config/config.env` 复制为 `resources/config/config.local.env` 填写 key
-    （该文件已 `.gitignore`，不会误提交）；
-  - 检索会生成本机用户配置 `sources.env` / `preferences.env`，同样被忽略。
-- **贡献**：见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 为什么有这个 skill
 
@@ -111,9 +101,11 @@ python scripts/wos_snapshot.py --ocr-only --image screenshot.png
 | `--out` | — | 写 JSON 文件（始终含 abstract 字段） |
 | `--abstracts` | — | 文本输出也打印摘要 |
 | `--filter` | 保存的偏好 | 摘要筛选：`always`（以后都是）/ `once`（仅本次）/ `no`（这次不用）/ `never`（以后都不用） |
+| `--zone` | 保存的偏好 | SCI 中科院分区下限：`1`/`2`/`3`/`4`，只保留分区 ≤ 该值的文献（1 区最高） |
+| `--zone-mode` | 保存的偏好 | 分区筛选模式：`always`（保存为默认，以后都这样）/ `once`（仅本次）/ `off`（本次不用） |
 | `--check-keys` | — | 检查 API key 配置后退出 |
 | `--list-sources` | — | 列出各源覆盖/凭据/查询语法后退出 |
-| `--version` | — | 显示版本号（0.8.0） |
+| `--version` | — | 显示版本号（0.9.0） |
 
 注意：**`--sources` 控制查哪些库，`--source` 只过滤显示**。
 
@@ -131,6 +123,14 @@ python scripts/wos_snapshot.py --ocr-only --image screenshot.png
 - **摘要覆盖**：OpenAlex/CrossRef/Semantic Scholar 免费返回；Scopus/PubMed/WoS 默认无（跨源按 DOI 兜底补齐）。
 - **想改偏好**：编辑 `resources/config/preferences.env` 的 `FILTER_BY_ABSTRACT=` 行（always/once/no/never），或删除重选，或 `--filter` 临时覆盖。
 - 完整说明见 [`docs/摘要筛选说明.md`](docs/摘要筛选说明.md)。
+
+## SCI 分区筛选（中科院分区）
+
+- **首次运行**：询问是否按 SCI 中科院分区筛选——`0 不限 / 1 仅 1 区 / 2 2 区及以上 / 3 3 区及以上 / 4 4 区及以上`，随后问「是否每次都这样？[y/N]」，选 `y` 保存到 `resources/config/preferences.env`。
+- **分区数据**：本地映射表 `resources/data/journal_zones.json`（期刊名 → 分区 1-4）。需按研究方向维护，见 [`docs/SCI分区筛选说明.md`](docs/SCI分区筛选说明.md)。
+- **筛选行为**：只保留分区 ≤ `ZONE_MIN` 的文献；未知期刊**保留**并标注 `分区=?`，不误删。
+- **临时覆盖**：`--zone 1 --zone-mode once`（仅本次）、`--zone 2 --zone-mode always`（保存为默认）、`--zone-mode off`（本次不用）。
+- **想改偏好**：编辑 `resources/config/preferences.env` 的 `ZONE_FILTER=` / `ZONE_MIN=` 行，或删除重选。
 
 ## 查询语法
 
@@ -155,25 +155,25 @@ python scripts/wos_snapshot.py --ocr-only --image screenshot.png
 
 ```
 paper-research/
-├── SKILL.md                # skill 说明（Claude Code 指令）
-├── manifest.yaml           # skill 元数据
+├── SKILL.md              # skill 说明
+├── manifest.yaml         # skill 元数据
 ├── README.md
-├── LICENSE                 # 开源协议（MIT）
-├── CONTRIBUTING.md         # 贡献指南
-├── install.sh              # Claude Code 安装脚本（可选）
 ├── resources/
 │   ├── config/
-│   │   └── config.env      # key 配置模板（复制为 config.local.env 填写）
-│   └── wos_shots/          # 截图 OCR 输出的图片目录（运行时生成）
+│   │   └── config.env    # key 配置模板
+│   ├── data/
+│   │   └── journal_zones.json  # SCI 中科院分区映射表（期刊名→分区）
+│   └── wos_shots/        # 截图 OCR 输出的图片目录（运行时生成）
 ├── scripts/
-│   ├── paper_research.py   # 核心检索脚本（纯 stdlib）
-│   └── wos_snapshot.py     # WoS 截图+OCR 兜底脚本（可选依赖）
+│   ├── paper_research.py # 核心检索脚本（纯 stdlib）
+│   └── wos_snapshot.py   # WoS 截图+OCR 兜底脚本（可选依赖）
 ├── docs/
 │   ├── Scopus_API申请与使用指南.md
 │   ├── WoS_API申请与使用指南.md
 │   ├── WoS截图OCR兜底说明.md
+│   ├── SCI分区筛选说明.md
 │   ├── 摘要筛选说明.md
 │   └── 文献库配置说明.md
 └── references/
-    └── chinese-sources.md  # 中文文献库接入说明（深参考）
+    └── chinese-sources.md # 中文文献库接入说明（深参考）
 ```

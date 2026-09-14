@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-paper-research v0.8.0: Unified multi-source academic paper search.
+paper-research v0.9.0: Unified multi-source academic paper search.
 
 Interactive source selection:
     Running without --sources opens a numbered multi-select menu before
@@ -33,7 +33,7 @@ Usage:
     python paper_research.py "silver nanowire liquid metal electrode" --sources openalex,crossref,semantic_scholar,pubmed,scopus,wos --limit 10 --sort cited --out results.json
     python paper_research.py "silver nanowire" --source wos --limit 5
     python paper_research.py --check-keys          # verify all API keys
-    python paper_research.py --version             # show version (0.8.0)
+    python paper_research.py --version             # show version (0.9.0)
     python paper_research.py --list-sources        # show sources / credentials / syntax
 
 Environment / config:
@@ -81,6 +81,7 @@ SKILL_DIR = Path(__file__).resolve().parent.parent
 CONFIG_FILE = SKILL_DIR / "resources" / "config" / "config.env"
 SOURCES_FILE = SKILL_DIR / "resources" / "config" / "sources.env"
 PREFERENCES_FILE = SKILL_DIR / "resources" / "config" / "preferences.env"
+JOURNAL_ZONES_FILE = SKILL_DIR / "resources" / "data" / "journal_zones.json"
 PYBIO_CFG = Path.home() / ".config" / "pybliometrics.cfg"
 LITDL_CRED = Path.home() / ".config" / "lit-dl" / "credentials.json"
 
@@ -152,6 +153,133 @@ def save_filter_pref(value: str) -> None:
         PREFERENCES_FILE.write_text(body, encoding="utf-8")
     except OSError as e:
         print(f"[warn] 无法保存筛选偏好: {e}", file=sys.stderr)
+
+
+def load_zone_pref() -> tuple[str | None, int | None]:
+    """Load saved SCI-zone preference from preferences.env.
+
+    Returns (mode, min_zone) where mode is 'always'|'once'|None and
+    min_zone is 1-4 or None (disabled). Empty when unset.
+    """
+    if not PREFERENCES_FILE.exists():
+        return None, None
+    prefs = _read_env_file(PREFERENCES_FILE)
+    mode = prefs.get("ZONE_FILTER", "").strip().lower()
+    mode = mode if mode in ("always", "once") else None
+    try:
+        min_zone = int(prefs.get("ZONE_MIN", "0"))
+        min_zone = min_zone if 1 <= min_zone <= 4 else None
+    except ValueError:
+        min_zone = None
+    return mode, min_zone
+
+
+def save_zone_pref(mode: str, min_zone: int) -> None:
+    """Persist the SCI-zone filter preference to preferences.env.
+
+    Preserves the existing FILTER_BY_ABSTRACT line so the two settings
+    coexist in the same file.
+    """
+    try:
+        PREFERENCES_FILE.parent.mkdir(parents=True, exist_ok=True)
+        cur = _read_env_file(PREFERENCES_FILE)
+        existing = cur.get("FILTER_BY_ABSTRACT", "")
+        lines = [
+            "# paper-research 分区筛选偏好（中科院分区）\n",
+            "#   ZONE_FILTER = always=以后每次都按分区筛  once=仅本次  （缺省=不筛）\n",
+            "#   ZONE_MIN    = 1|2|3|4  保留「分区 <= 该值」的文献（1 区最高）\n",
+            "# 想修改：改下面两行，或删除本文件后重新初始化。\n",
+            f"ZONE_FILTER={mode}\n",
+            f"ZONE_MIN={min_zone}\n",
+        ]
+        if existing:
+            lines.append(f"FILTER_BY_ABSTRACT={existing}\n")
+        PREFERENCES_FILE.write_text("".join(lines), encoding="utf-8")
+    except OSError as e:
+        print(f"[warn] 无法保存分区偏好: {e}", file=sys.stderr)
+
+
+# ---------------------------------------------------------------------------
+# SCI journal zone (中科院分区) filter
+# ---------------------------------------------------------------------------
+# Zone data lives in a local JSON map resources/data/journal_zones.json
+# {"Journal Name": 1} where value is the 中科院大类分区 (1-4).
+# It is maintained by the user (e.g. from LetPub / 中科院分区官网). The map
+# is matched against each result's journal name with normalization, so the
+# zone of a known journal is looked up even if the string differs slightly.
+
+
+def load_journal_zones() -> dict[str, int]:
+    """Load the local 中科院分区 map {journal_name: zone(1-4)}.
+
+    Returns an empty dict if the file is missing or malformed, so the zone
+    filter degrades gracefully (all papers pass, annotated as 无分区).
+    """
+    try:
+        if not JOURNAL_ZONES_FILE.exists():
+            return {}
+        data = json.loads(JOURNAL_ZONES_FILE.read_text(encoding="utf-8"))
+        zones: dict[str, int] = {}
+        for name, z in data.items():
+            if isinstance(z, (int, float)) and 1 <= int(z) <= 4:
+                zones[str(name)] = int(z)
+        return zones
+    except Exception as e:
+        print(f"[warn] 分区映射表读取失败: {e}", file=sys.stderr)
+        return {}
+
+
+def _norm_journal(name: str) -> str:
+    """Normalize a journal name for lookup: lowercase, collapse whitespace."""
+    return re.sub(r"\s+", " ", (name or "")).strip().lower()
+
+
+def journal_zone(journal_name: str, zones: dict[str, int]) -> int | None:
+    """Look up the 中科院分区 (1-4) of a journal name.
+
+    Matching strategy (cheap, no external calls):
+      1. exact normalized match against the map keys;
+      2. contains-match: a map key is a substring of the journal name
+         (e.g. key "advanced functional materials" matches
+         "Advanced Functional Materials (Weinheim)").
+    Returns None when unknown.
+    """
+    if not journal_name or not zones:
+        return None
+    target = _norm_journal(journal_name)
+    if not target:
+        return None
+    # exact
+    if target in zones:
+        return zones[target]
+    # substring: map key contained in journal name
+    for key, z in zones.items():
+        if key and key in target:
+            return z
+    return None
+
+
+def filter_by_zone(results: list[dict], min_zone: int | None, zones: dict[str, int]) -> tuple[list[dict], list[dict]]:
+    """Split results into kept / dropped by 中科院分区.
+
+    - min_zone is None -> everything kept.
+    - A paper is kept if its journal zone <= min_zone (1 is best).
+    - Papers with an unknown journal (no entry in the map) are KEPT and
+      annotated zone=None so the user still sees them, just unlabelled.
+    Returns (kept, dropped).
+    """
+    if min_zone is None:
+        return results, []
+    kept: list[dict] = []
+    dropped: list[dict] = []
+    for r in results:
+        z = journal_zone(r.get("journal"), zones)
+        r["zone"] = z  # attach for display
+        if z is None or z <= min_zone:
+            kept.append(r)
+        else:
+            dropped.append(r)
+    return kept, dropped
 
 
 def get_keys() -> dict[str, str]:
@@ -791,7 +919,8 @@ def sort_results(results: list[dict], sort: str) -> list[dict]:
     return results
 
 
-def print_results(results: list[dict], source_filter: str | None = None, show_abstracts: bool = False):
+def print_results(results: list[dict], source_filter: str | None = None, show_abstracts: bool = False,
+                  show_zone: bool = False):
     for r in results:
         if source_filter and r.get("source") != source_filter:
             continue
@@ -801,7 +930,11 @@ def print_results(results: list[dict], source_filter: str | None = None, show_ab
         jn = (r.get("journal") or "")[:28]
         t = (r.get("title") or "")[:72]
         doi = r.get("doi") or ""
-        print(f"[{yr}] {t} | {jn} | src={src} | cit={cited} | {doi}")
+        zone = ""
+        if show_zone:
+            z = r.get("zone")
+            zone = f" | 分区={z}" if z else " | 分区=?"
+        print(f"[{yr}] {t} | {jn} | src={src} | cit={cited}{zone} | {doi}")
         if show_abstracts:
             ab = (r.get("abstract") or "").strip()
             if ab:
@@ -948,7 +1081,7 @@ def cmd_list_sources():
     """Print per-source coverage / credentials / tips. Replaces the info table
     that used to live in SKILL.md so agents can query it at runtime."""
     keys = get_keys()
-    print("可用检索源（paper-research 0.8.0）：")
+    print("可用检索源（paper-research 0.9.0）：")
     for name in ALL_SOURCES:
         d = SOURCE_DETAILS.get(name, {})
         print(f"\n[{name}]")
@@ -976,10 +1109,16 @@ def main():
                     help="Abstract-based relevance filter: always=save default (filter every time), "
                          "once=filter this run only, no=don't filter this run, "
                          "never=don't filter and never ask again. Omit to use saved preference.")
+    ap.add_argument("--zone", type=int, choices=[1, 2, 3, 4], default=None,
+                    help="SCI 中科院分区下限：只保留分区 <= 该值的文献（1 区最高）。"
+                         "配合 --zone-mode always|once 决定是否保存为默认。缺省用保存的偏好。")
+    ap.add_argument("--zone-mode", choices=["always", "once", "off"], default=None,
+                    help="分区筛选模式：always=保存为默认（以后都这样），once=仅本次，off=本次不用。"
+                         "缺省用保存的偏好（无保存时首次交互询问）。")
     ap.add_argument("--check-keys", action="store_true", help="Verify API keys and exit")
     ap.add_argument("--list-sources", action="store_true",
                     help="List all sources, their credentials and query syntax, then exit")
-    ap.add_argument("--version", action="version", version="paper-research 0.8.0")
+    ap.add_argument("--version", action="version", version="paper-research 0.9.0")
     args = ap.parse_args()
 
     if args.check_keys:
@@ -1024,6 +1163,53 @@ def main():
         else:
             print("本次" + ("按摘要筛选" if filter_pref == "once" else "不按摘要筛选") +
                   "（不影响以后，下次仍会询问）。")
+
+    # SCI 中科院分区筛选偏好：
+    #   --zone / --zone-mode   显式覆盖
+    #   preferences.env 保存值（ZONE_FILTER + ZONE_MIN）
+    #   否则首次运行交互询问
+    zone_mode = args.zone_mode
+    zone_min = args.zone
+    if zone_mode is None and zone_min is None:
+        saved_mode, saved_min = load_zone_pref()
+        if saved_mode and saved_min:
+            zone_mode, zone_min = saved_mode, saved_min
+    if zone_mode == "off":
+        zone_mode, zone_min = None, None
+    elif zone_mode is None and zone_min is not None:
+        zone_mode = "once"  # --zone 未给模式时默认仅本次
+    elif zone_mode is not None and zone_min is None:
+        zone_min = 2  # --zone-mode 未给分区时默认 2 区及以上
+    elif zone_mode is None and zone_min is None:
+        # 首次：询问用户
+        print("\n是否按 SCI 中科院分区筛选文献（只保留指定分区及以上的期刊）？")
+        print("  [0] 不限（不筛）   [1] 仅保留 1 区   [2] 2 区及以上（默认）  [3] 3 区及以上  [4] 4 区及以上")
+        try:
+            zc = input("选择分区 [0-4, 默认 2]: ").strip()
+        except EOFError:
+            zc = ""
+        zc = zc if zc in ("0", "1", "2", "3", "4") else ("2" if zc == "" else "0")
+        if zc == "0":
+            zone_min = None
+            print("本次不按分区筛选。")
+        else:
+            zone_min = int(zc)
+            # 询问是否保存为默认
+            print(f"将只保留 {zone_min} 区及以上（分区 <= {zone_min}）的文献。")
+            try:
+                zs = input("是否每次都这样？[y/N] ").strip().lower()
+            except EOFError:
+                zs = ""
+            if zs in ("y", "yes"):
+                save_zone_pref("always", zone_min)
+                print(f"已保存：以后每次检索都按 {zone_min} 区及以上筛选。"
+                      f"想改：编辑 resources/config/preferences.env 的 ZONE_FILTER/ZONE_MIN 行。")
+            else:
+                print(f"仅本次按 {zone_min} 区及以上筛选（不影响以后，下次仍会询问）。")
+
+    zones = load_journal_zones()
+    if zones and zone_min:
+        print(f"[分区] 已加载 {len(zones)} 个期刊分区映射。", file=sys.stderr)
 
     results: list[dict] = []
     errors: list[str] = []
@@ -1074,14 +1260,22 @@ def main():
     results = fill_abstracts(results)
     results = sort_results(results, args.sort)
 
-    print_results(results, args.source, show_abstracts=args.abstracts)
+    # Apply 中科院分区 filter (keeps papers with zone <= min_zone; unknown journals are kept, unlabelled)
+    dropped: list[dict] = []
+    if zone_min:
+        results, dropped = filter_by_zone(results, zone_min, zones)
+        if dropped:
+            print(f"[分区] 过滤掉 {len(dropped)} 篇分区高于 {zone_min} 区的文献（见 --out 的 dropped）。",
+                  file=sys.stderr)
+
+    print_results(results, args.source, show_abstracts=args.abstracts, show_zone=bool(zone_min))
 
     if errors:
         print(f"\n# errors: {errors}", file=sys.stderr)
 
     if args.out:
         with open(args.out, "w", encoding="utf-8") as f:
-            json.dump({"query": args.query, "results": results, "errors": errors},
+            json.dump({"query": args.query, "results": results, "dropped": dropped, "errors": errors},
                       f, ensure_ascii=False, indent=2)
         print(f"\n[written] {args.out}", file=sys.stderr)
 

@@ -2,6 +2,22 @@
 
 本 skill 的变更记录。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号采用 0.x 系列。
 
+## [0.9.0] - 2026-09-14
+
+### 新增（SCI 中科院分区筛选）
+
+- **分区筛选核心**：`filter_by_zone()` 按中科院大类分区（1-4 区）过滤结果——只保留分区 ≤ 设定值的文献；未知期刊**保留**并标注 `分区=?`（不误删）。
+- **本地分区映射表**：`resources/data/journal_zones.json`（期刊名→分区），`load_journal_zones()` 加载、`journal_zone()` 规范化匹配（精确 + 子串，如键 `advanced functional materials` 匹配 `Advanced Functional Materials (Weinheim)`）。
+- **交互询问**：首次运行时询问「选分区（0 不限 / 1-4）+ 是否每次都这样？[y/N]」，支持"仅本次"与"以后都这样"两个选项。
+- **偏好持久化**：`resources/config/preferences.env` 新增 `ZONE_FILTER=always/once` 与 `ZONE_MIN=1-4`；`save_zone_pref()` 保留原有 `FILTER_BY_ABSTRACT` 行（两设置共存）。
+- **命令行**：`--zone 1-4`（分区下限）+ `--zone-mode always/once/off`（模式）。
+- **输出标注**：文本结果显示 `分区=N`；`--out` JSON 新增 `dropped` 字段（被过滤的文献）。
+- **docs/SCI分区筛选说明.md**：告诉用户分区数据源、首次交互、怎么改配置（改 preferences.env / 删除重选 / --zone 临时覆盖）、怎么补充期刊分区。
+
+### 变更
+
+- 版本号同步 0.9.0（脚本 / manifest / README / CHANGELOG）。
+
 ## [0.8.0] - 2026-09-11
 
 ### 新增（WoS 独有文献截图 + OCR 兜底）
@@ -50,7 +66,7 @@
   （每片独立容错，单片失败打 warn 不崩溃；扇出上限 10 保护配额）。
   - 括号内/引号内的 OR 不拆（`TS=(a OR b)`、`"a OR b"`、`DO=(...)` 原样单次传递）。
 - **`--sort cited/date`** 合并后全局排序正常。
-- 验证：mock 全用例 + 真实 WoS API（`energy storage OR battery` 修复前 400，修复后出结果；
+- 验证：mock 全用例 + 真实 WoS API（`sodium ISFET OR ion-selective transistor` 修复前 400，修复后出结果；
   `silver nanowire AND gold`、`DO=(10.1016/j.cej.2021.132152)` 均正常）。
 
 ## [0.5.1] - 2026-09-10
