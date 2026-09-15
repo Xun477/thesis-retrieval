@@ -1,4 +1,4 @@
-# paper-research (v0.9.0)
+# paper-research (v0.9.1)
 
 统一多源学术文献检索 Skill。一次查询跨 **OpenAlex / CrossRef / Semantic Scholar / PubMed / Scopus / Web of Science** 六个学术库检索，自动去重、按引用/日期排序，支持 JSON 导出。WoS 独有文献（其他库查不到、也无 DOI）可用截图+OCR 兜底抓取。支持按 **SCI 中科院分区**筛选。
 
@@ -108,7 +108,7 @@ python scripts/wos_snapshot.py --ocr-only --image screenshot.png
 | `--zone-mode` | 保存的偏好 | 分区筛选模式：`always`（保存为默认，以后都这样）/ `once`（仅本次）/ `off`（本次不用） |
 | `--check-keys` | — | 检查 API key 配置后退出 |
 | `--list-sources` | — | 列出各源覆盖/凭据/查询语法后退出 |
-| `--version` | — | 显示版本号（0.9.0） |
+| `--version` | — | 显示版本号（0.9.1） |
 
 注意：**`--sources` 控制查哪些库，`--source` 只过滤显示**。
 

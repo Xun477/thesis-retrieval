@@ -2,6 +2,20 @@
 
 本 skill 的变更记录。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号采用 0.x 系列。
 
+## [0.9.1] - 2026-09-15
+
+### 修复（偏好持久化失效）
+
+- **`--sources ... --save-sources` 不落盘**：显式传 `--sources` 时 `resolve_sources` 直接返回，从不调用 `save_sources`，
+  导致 README 所述"覆盖保存默认文献库"无效。现改为显式 `--sources` 且带 `--save-sources` 时也写入 `resources/config/sources.env`。
+- **`--filter always/never` 不持久化**：仅交互菜单里选 1/4 才保存，命令行显式传值不落盘。现改为显式 `--filter always/never` 同样写入 `preferences.env`。
+- **`--zone N --zone-mode always` 不持久化**：仅交互菜单选"每次都这样"才保存，命令行显式传不落盘。现改为显式 `--zone-mode always` 同样写入 `preferences.env` 的 `ZONE_FILTER/ZONE_MIN`。
+- **README**：快速开始补充 Windows 下中文乱码提示（`PYTHONIOENCODING=utf-8`）。
+
+### 变更
+
+- 版本号同步 0.9.1（脚本 / manifest / README / CHANGELOG）。
+
 ## [0.9.0] - 2026-09-14
 
 ### 新增（SCI 中科院分区筛选）
