@@ -46,6 +46,9 @@ python scripts/paper_research.py --list-sources
 python scripts/paper_research.py --version
 ```
 
+> **Windows 提示**：若终端中文乱码（GBK 编码），加 `PYTHONIOENCODING=utf-8` 前缀运行：
+> `PYTHONIOENCODING=utf-8 python scripts/paper_research.py "查询词"`。
+
 ## 依赖
 
 - **核心检索**（`paper_research.py`）：仅 Python 标准库（urllib/json/ssl/argparse），**零第三方依赖**。

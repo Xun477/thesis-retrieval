@@ -960,7 +960,10 @@ def resolve_sources(args, keys) -> list[str]:
     valid = set(ALL_SOURCES)
     if args.sources is not None:
         picked = [s.strip() for s in args.sources.split(",") if s.strip()]
-        return [s for s in picked if s in valid]
+        picked = [s for s in picked if s in valid]
+        if args.save_sources and picked:
+            save_sources(picked)  # 显式 --sources 时也允许 --save-sources 持久化
+        return picked
 
     saved = load_saved_sources()
     if saved:
@@ -1163,6 +1166,8 @@ def main():
         else:
             print("本次" + ("按摘要筛选" if filter_pref == "once" else "不按摘要筛选") +
                   "（不影响以后，下次仍会询问）。")
+    elif filter_pref in ("always", "never"):
+        save_filter_pref(filter_pref)  # 显式 --filter always/never 也持久化为默认
 
     # SCI 中科院分区筛选偏好：
     #   --zone / --zone-mode   显式覆盖
@@ -1206,6 +1211,8 @@ def main():
                       f"想改：编辑 resources/config/preferences.env 的 ZONE_FILTER/ZONE_MIN 行。")
             else:
                 print(f"仅本次按 {zone_min} 区及以上筛选（不影响以后，下次仍会询问）。")
+    elif zone_mode == "always" and zone_min:
+        save_zone_pref("always", zone_min)  # 显式 --zone-mode always 也持久化为默认
 
     zones = load_journal_zones()
     if zones and zone_min:
