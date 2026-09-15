@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-paper-research v0.9.1: Unified multi-source academic paper search.
+paper-research v1.0.0: Unified multi-source academic paper search.
 
 Interactive source selection:
     Running without --sources opens a numbered multi-select menu before
@@ -33,7 +33,7 @@ Usage:
     python paper_research.py "silver nanowire liquid metal electrode" --sources openalex,crossref,semantic_scholar,pubmed,scopus,wos --limit 10 --sort cited --out results.json
     python paper_research.py "silver nanowire" --source wos --limit 5
     python paper_research.py --check-keys          # verify all API keys
-    python paper_research.py --version             # show version (0.9.1)
+    python paper_research.py --version             # show version (1.0.0)
     python paper_research.py --list-sources        # show sources / credentials / syntax
 
 Environment / config:
@@ -1084,7 +1084,7 @@ def cmd_list_sources():
     """Print per-source coverage / credentials / tips. Replaces the info table
     that used to live in SKILL.md so agents can query it at runtime."""
     keys = get_keys()
-    print("可用检索源（paper-research 0.9.1）：")
+    print("可用检索源（paper-research 1.0.0）：")
     for name in ALL_SOURCES:
         d = SOURCE_DETAILS.get(name, {})
         print(f"\n[{name}]")
@@ -1121,7 +1121,7 @@ def main():
     ap.add_argument("--check-keys", action="store_true", help="Verify API keys and exit")
     ap.add_argument("--list-sources", action="store_true",
                     help="List all sources, their credentials and query syntax, then exit")
-    ap.add_argument("--version", action="version", version="paper-research 0.9.1")
+    ap.add_argument("--version", action="version", version="paper-research 1.0.0")
     args = ap.parse_args()
 
     if args.check_keys:

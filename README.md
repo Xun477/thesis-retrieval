@@ -1,7 +1,30 @@
-# paper-research (v0.9.1)
+# paper-research (v1.0.0)
 
 统一多源学术文献检索 Skill。一次查询跨 **OpenAlex / CrossRef / Semantic Scholar / PubMed / Scopus / Web of Science** 六个学术库检索，自动去重、按引用/日期排序，支持 JSON 导出。WoS 独有文献（其他库查不到、也无 DOI）可用截图+OCR 兜底抓取。支持按 **SCI 中科院分区**筛选。
 
+## 安装
+
+面向 AI agent / 手动两种方式的完整安装指引见 **[INSTALL.md](INSTALL.md)**。
+
+##### AI agent 安装
+
+**交给你的 AI**，把这句话发给它：
+
+> 按本仓库的 INSTALL.md 安装并配置 paper-research skill，完成后运行体检（--version / --check-keys）并把结果告诉我。
+
+##### 手动安装
+
+简要步骤：
+
+1. 把 `paper-research` 文件夹复制到 skill 目录（Claude Code 为 `~/.claude/skills/`，Windows 为 `%USERPROFILE%\.claude\skills\`）
+2. 核心检索零依赖，无需装包；WoS 截图 OCR 兜底才需 `pip install playwright rapidocr_onnxruntime`
+3. 配置凭据（可选）：复制 `resources/config/config.env` → `resources/config/config.local.env` 填写，或用环境变量 `SCOPUS_API_KEY` / `WOS_API_KEY` / `OPENALEX_MAILTO`。OpenAlex / CrossRef / Semantic Scholar / PubMed **四源免 key 直接可用**
+4. 运行配置：首次运行交互生成 `sources.env` 与 `preferences.env`，无需手动填路径
+
+> **开源协议：** 本 skill 以 **MIT** 协议发布，见 [LICENSE](LICENSE)。
+
+> v1.0.0：正式发布版——补全 INSTALL.md 安装指引，文档与版本号同步 1.0.0。
+> v0.9.1：修复 `--save-sources` / `--filter` / `--zone-mode` 持久化失效；README 补 Windows 编码提示。
 > v0.9.0：新增 SCI 中科院分区筛选（`--zone`，本地映射表 `resources/data/journal_zones.json`，偏好可持久化）。
 > v0.8.0：新增 WoS 截图+OCR 兜底脚本 `scripts/wos_snapshot.py`（Playwright 开浏览器 → 截图 → RapidOCR 识别）。
 > v0.7.0：新增摘要提取与按摘要筛选（初始化时选择偏好，可持久化）。
@@ -108,7 +131,7 @@ python scripts/wos_snapshot.py --ocr-only --image screenshot.png
 | `--zone-mode` | 保存的偏好 | 分区筛选模式：`always`（保存为默认，以后都这样）/ `once`（仅本次）/ `off`（本次不用） |
 | `--check-keys` | — | 检查 API key 配置后退出 |
 | `--list-sources` | — | 列出各源覆盖/凭据/查询语法后退出 |
-| `--version` | — | 显示版本号（0.9.1） |
+| `--version` | — | 显示版本号（1.0.0） |
 
 注意：**`--sources` 控制查哪些库，`--source` 只过滤显示**。
 
@@ -160,10 +183,12 @@ python scripts/wos_snapshot.py --ocr-only --image screenshot.png
 paper-research/
 ├── SKILL.md              # skill 说明
 ├── manifest.yaml         # skill 元数据
-├── README.md
+├── README.md             # 本文档
+├── INSTALL.md            # 安装指引（AI agent / 手动）
 ├── resources/
 │   ├── config/
-│   │   └── config.env    # key 配置模板
+│   │   ├── config.env    # key 配置模板
+│   │   └── config.local.env  # 本地 key 覆盖（可选，不入库）
 │   ├── data/
 │   │   └── journal_zones.json  # SCI 中科院分区映射表（期刊名→分区）
 │   └── wos_shots/        # 截图 OCR 输出的图片目录（运行时生成）

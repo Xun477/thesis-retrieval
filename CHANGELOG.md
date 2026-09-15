@@ -1,6 +1,17 @@
 # Changelog
 
-本 skill 的变更记录。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号采用 0.x 系列。
+本 skill 的变更记录。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。版本号从 v1.0.0 起进入正式发布。
+
+## [1.0.0] - 2026-09-15
+
+### 新增
+
+- **`INSTALL.md`**：面向 AI agent / 手动两种方式的完整安装指引（找到 skill 目录 → 放入文件夹 → 装依赖 → 配凭据 → 运行配置 → 验证），含 Windows 特例与失败处理。README「安装」章节链接到它。
+- **README 安装章节**：参照同类 skill 的 README 结构，补充 AI agent 一句话安装 + 手动安装简要步骤。
+
+### 变更
+
+- 版本号同步 1.0.0（脚本 / manifest / README / CHANGELOG），正式发布。
 
 ## [0.9.1] - 2026-09-15
 
