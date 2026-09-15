@@ -57,13 +57,13 @@
 
 ```bash
 # 本次筛 2 区及以上（不保存）
-python scripts/paper_research.py "query" --zone 2 --zone-mode once
+python scripts/thesis_retrieval.py "query" --zone 2 --zone-mode once
 
 # 本次筛 1 区，并保存为默认（以后都这样）
-python scripts/paper_research.py "query" --zone 1 --zone-mode always
+python scripts/thesis_retrieval.py "query" --zone 1 --zone-mode always
 
 # 本次不筛分区（即使保存过偏好）
-python scripts/paper_research.py "query" --zone-mode off
+python scripts/thesis_retrieval.py "query" --zone-mode off
 ```
 
 | 参数 | 取值 | 说明 |

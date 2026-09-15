@@ -1,4 +1,4 @@
-# paper-research (v1.0.0)
+# thesis-retrieval (v1.0.0)
 
 统一多源学术文献检索 Skill。一次查询跨 **OpenAlex / CrossRef / Semantic Scholar / PubMed / Scopus / Web of Science** 六个学术库检索，自动去重、按引用/日期排序，支持 JSON 导出。WoS 独有文献（其他库查不到、也无 DOI）可用截图+OCR 兜底抓取。支持按 **SCI 中科院分区**筛选。
 
@@ -10,13 +10,13 @@
 
 **交给你的 AI**，把这句话发给它：
 
-> 按本仓库的 INSTALL.md 安装并配置 paper-research skill，完成后运行体检（--version / --check-keys）并把结果告诉我。
+> 按本仓库的 INSTALL.md 安装并配置 thesis-retrieval skill，完成后运行体检（--version / --check-keys）并把结果告诉我。
 
 ##### 手动安装
 
 简要步骤：
 
-1. 把 `paper-research` 文件夹复制到 skill 目录（Claude Code 为 `~/.claude/skills/`，Windows 为 `%USERPROFILE%\.claude\skills\`）
+1. 把 `thesis-retrieval` 文件夹复制到 skill 目录（Claude Code 为 `~/.claude/skills/`，Windows 为 `%USERPROFILE%\.claude\skills\`）
 2. 核心检索零依赖，无需装包；WoS 截图 OCR 兜底才需 `pip install playwright rapidocr_onnxruntime`
 3. 配置凭据（可选）：复制 `resources/config/config.env` → `resources/config/config.local.env` 填写，或用环境变量 `SCOPUS_API_KEY` / `WOS_API_KEY` / `OPENALEX_MAILTO`。OpenAlex / CrossRef / Semantic Scholar / PubMed **四源免 key 直接可用**
 4. 运行配置：首次运行交互生成 `sources.env` 与 `preferences.env`，无需手动填路径
@@ -42,7 +42,7 @@
 1. **pybliometrics SSL 错误**导致 Scopus 不可用（`SSLError`）
 2. **缺 WoS** 检索能力
 
-`paper-research` 用直接 HTTP 调用替代 pybliometrics（绕开 SSL bug），并新增 **WoS Starter API** **、CrossRef、Semantic Scholar、PubMed** 直连。六个源合并为一个 CLI。
+`thesis-retrieval` 用直接 HTTP 调用替代 pybliometrics（绕开 SSL bug），并新增 **WoS Starter API** **、CrossRef、Semantic Scholar、PubMed** 直连。六个源合并为一个 CLI。
 
 > 安全说明：旧版脚本为绕开 SSL bug 曾**对所有请求关闭 TLS 证书校验**（中间人攻击风险）。
 > 现改为**默认校验证书**，仅在该请求本身触发 SSL 错误时，用宽松上下文自动重试一次作为定向 fallback。
@@ -51,30 +51,30 @@
 
 ```bash
 # 六库联合检索
-python scripts/paper_research.py "silver nanowire liquid metal electrode" --sources openalex,crossref,semantic_scholar,pubmed,scopus,wos
+python scripts/thesis_retrieval.py "silver nanowire liquid metal electrode" --sources openalex,crossref,semantic_scholar,pubmed,scopus,wos
 
 # 不指定 --sources：启动前交互式多选要检索哪些库（可多选 / all / 回车默认全部可用）
-python scripts/paper_research.py "silver nanowire"
+python scripts/thesis_retrieval.py "silver nanowire"
 
 # 只查 WoS 按引用排序
-python scripts/paper_research.py "silver nanowire" --sources wos --sort cited
+python scripts/thesis_retrieval.py "silver nanowire" --sources wos --sort cited
 
 # 检查 key 配置
-python scripts/paper_research.py --check-keys
+python scripts/thesis_retrieval.py --check-keys
 
 # 查看每个源的覆盖/凭据/查询语法（运行时自查）
-python scripts/paper_research.py --list-sources
+python scripts/thesis_retrieval.py --list-sources
 
 # 查看版本
-python scripts/paper_research.py --version
+python scripts/thesis_retrieval.py --version
 ```
 
 > **Windows 提示**：若终端中文乱码（GBK 编码），加 `PYTHONIOENCODING=utf-8` 前缀运行：
-> `PYTHONIOENCODING=utf-8 python scripts/paper_research.py "查询词"`。
+> `PYTHONIOENCODING=utf-8 python scripts/thesis_retrieval.py "查询词"`。
 
 ## 依赖
 
-- **核心检索**（`paper_research.py`）：仅 Python 标准库（urllib/json/ssl/argparse），**零第三方依赖**。
+- **核心检索**（`thesis_retrieval.py`）：仅 Python 标准库（urllib/json/ssl/argparse），**零第三方依赖**。
 - **WoS 截图 OCR 兜底**（`wos_snapshot.py`，可选）：`pip install playwright rapidocr_onnxruntime`；首次运行 `playwright` 需系统 Chrome/Edge（推荐，脚本自动查找），或 `playwright install chromium` 安装自带内核。
 
 ## API key
@@ -180,7 +180,7 @@ python scripts/wos_snapshot.py --ocr-only --image screenshot.png
 ## 目录结构
 
 ```
-paper-research/
+thesis-retrieval/
 ├── SKILL.md              # skill 说明
 ├── manifest.yaml         # skill 元数据
 ├── README.md             # 本文档
@@ -193,7 +193,7 @@ paper-research/
 │   │   └── journal_zones.json  # SCI 中科院分区映射表（期刊名→分区）
 │   └── wos_shots/        # 截图 OCR 输出的图片目录（运行时生成）
 ├── scripts/
-│   ├── paper_research.py # 核心检索脚本（纯 stdlib）
+│   ├── thesis_retrieval.py # 核心检索脚本（纯 stdlib）
 │   └── wos_snapshot.py   # WoS 截图+OCR 兜底脚本（可选依赖）
 ├── docs/
 │   ├── Scopus_API申请与使用指南.md

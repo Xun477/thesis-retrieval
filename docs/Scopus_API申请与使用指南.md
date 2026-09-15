@@ -134,7 +134,7 @@ for e in s.results:
     print(e.doi, e.title[:60], e.citedby_count)
 ```
 
-> 说明: 配置好上述文件后,即可用本项目的 `paper_research.py` 直接检索 Scopus。
+> 说明: 配置好上述文件后,即可用本项目的 `thesis_retrieval.py` 直接检索 Scopus。
 
 ---
 

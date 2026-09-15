@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-paper-research v1.0.0: Unified multi-source academic paper search.
+thesis-retrieval v1.0.0: Unified multi-source academic paper search.
 
 Interactive source selection:
     Running without --sources opens a numbered multi-select menu before
@@ -29,12 +29,12 @@ HTTP client behaviour:
   - Sends a User-Agent header containing the configured mailto.
 
 Usage:
-    python paper_research.py "silver nanowire"                    # interactive source pick
-    python paper_research.py "silver nanowire liquid metal electrode" --sources openalex,crossref,semantic_scholar,pubmed,scopus,wos --limit 10 --sort cited --out results.json
-    python paper_research.py "silver nanowire" --source wos --limit 5
-    python paper_research.py --check-keys          # verify all API keys
-    python paper_research.py --version             # show version (1.0.0)
-    python paper_research.py --list-sources        # show sources / credentials / syntax
+    python thesis_retrieval.py "silver nanowire"                    # interactive source pick
+    python thesis_retrieval.py "silver nanowire liquid metal electrode" --sources openalex,crossref,semantic_scholar,pubmed,scopus,wos --limit 10 --sort cited --out results.json
+    python thesis_retrieval.py "silver nanowire" --source wos --limit 5
+    python thesis_retrieval.py --check-keys          # verify all API keys
+    python thesis_retrieval.py --version             # show version (1.0.0)
+    python thesis_retrieval.py --list-sources        # show sources / credentials / syntax
 
 Environment / config:
     Keys are read (in order) from:
@@ -120,7 +120,7 @@ def save_sources(sources: list[str]) -> None:
     """Persist the chosen source list to resources/config/sources.env."""
     try:
         SOURCES_FILE.parent.mkdir(parents=True, exist_ok=True)
-        body = "# paper-research 持久化文献库选择（由首次初始化或 --save-sources 写入）\n"
+        body = "# thesis-retrieval 持久化文献库选择（由首次初始化或 --save-sources 写入）\n"
         body += "# 想换文献库：改下面这行，或删除本文件后重新初始化，或运行时用 --sources 覆盖。\n"
         body += "SOURCES=" + ",".join(sources) + "\n"
         SOURCES_FILE.write_text(body, encoding="utf-8")
@@ -143,7 +143,7 @@ def save_filter_pref(value: str) -> None:
     """Persist the abstract-filter preference to resources/config/preferences.env."""
     try:
         PREFERENCES_FILE.parent.mkdir(parents=True, exist_ok=True)
-        body = ("# paper-research 摘要筛选偏好（FILTER_BY_ABSTRACT）\n"
+        body = ("# thesis-retrieval 摘要筛选偏好（FILTER_BY_ABSTRACT）\n"
                 "#   always = 以后每次都按摘要筛选（推荐）\n"
                 "#   once   = 仅本次筛选\n"
                 "#   no     = 本次不筛选\n"
@@ -185,7 +185,7 @@ def save_zone_pref(mode: str, min_zone: int) -> None:
         cur = _read_env_file(PREFERENCES_FILE)
         existing = cur.get("FILTER_BY_ABSTRACT", "")
         lines = [
-            "# paper-research 分区筛选偏好（中科院分区）\n",
+            "# thesis-retrieval 分区筛选偏好（中科院分区）\n",
             "#   ZONE_FILTER = always=以后每次都按分区筛  once=仅本次  （缺省=不筛）\n",
             "#   ZONE_MIN    = 1|2|3|4  保留「分区 <= 该值」的文献（1 区最高）\n",
             "# 想修改：改下面两行，或删除本文件后重新初始化。\n",
@@ -356,7 +356,7 @@ def _get(url: str, headers: dict[str, str] | None = None, timeout: int = 30, ret
       Clarivate all expect one).
     """
     keys = get_keys()
-    ua = f"paper-research/1.0 (+mailto:{keys['mailto']})"
+    ua = f"thesis-retrieval/1.0 (+mailto:{keys['mailto']})"
     headers = {"User-Agent": ua, "Accept": "application/json", **dict(headers or {})}
     verified = ssl.create_default_context()
     last_err: Exception | None = None
@@ -1084,7 +1084,7 @@ def cmd_list_sources():
     """Print per-source coverage / credentials / tips. Replaces the info table
     that used to live in SKILL.md so agents can query it at runtime."""
     keys = get_keys()
-    print("可用检索源（paper-research 1.0.0）：")
+    print("可用检索源（thesis-retrieval 1.0.0）：")
     for name in ALL_SOURCES:
         d = SOURCE_DETAILS.get(name, {})
         print(f"\n[{name}]")
@@ -1121,7 +1121,7 @@ def main():
     ap.add_argument("--check-keys", action="store_true", help="Verify API keys and exit")
     ap.add_argument("--list-sources", action="store_true",
                     help="List all sources, their credentials and query syntax, then exit")
-    ap.add_argument("--version", action="version", version="paper-research 1.0.0")
+    ap.add_argument("--version", action="version", version="thesis-retrieval 1.0.0")
     args = ap.parse_args()
 
     if args.check_keys:

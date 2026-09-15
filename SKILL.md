@@ -1,5 +1,5 @@
 ---
-name: paper-research
+name: thesis-retrieval
 description: >-
   用户要查文献/找论文/跨库检索/查引用数/论文查新/写文献综述的检索部分时使用本 skill。
   一次查询跨 OpenAlex、CrossRef、Semantic Scholar、PubMed、Scopus、Web of Science 六大库，
@@ -13,7 +13,7 @@ license: MIT
 compatibility: Python 3.9+; WoS OCR 兜底需 playwright + rapidocr_onnxruntime
 ---
 
-# paper-research — 统一多源学术检索
+# thesis-retrieval — 统一多源学术检索
 
 ## 触发条件
 - 用户请求查文献、找论文、跨库检索、查引用数、论文查新、文献综述检索部分。
@@ -22,7 +22,7 @@ compatibility: Python 3.9+; WoS OCR 兜底需 playwright + rapidocr_onnxruntime
 - 单篇深度解读 → `nature-paper-card`；引文验证/MeSH → `nature-academic-search`；PDF/图注 → 专门 skill。
 
 ## 执行步骤
-1. 运行 `python scripts/paper_research.py "<query>"`。
+1. 运行 `python scripts/thesis_retrieval.py "<query>"`。
    - 无保存配置（首次）：交互选择文献库，并询问是否保存为默认。
    - 有保存配置：直接用保存的库，不弹菜单。
 2. 需要临时指定库：显式传 `--sources`（覆盖保存配置，仅本次）。

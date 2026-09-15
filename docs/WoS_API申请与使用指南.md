@@ -125,7 +125,7 @@ UID、Title、DOI、Times Cited、Source、Authors、Author Keywords、Publicati
 1. 把 key 写入本项目的 `resources/config/config.env`(或环境变量)
 2. 直接运行:
    ```bash
-   python scripts/paper_research.py "sodium ion sensor" --sources wos --sort cited
+   python scripts/thesis_retrieval.py "sodium ion sensor" --sources wos --sort cited
    ```
    WoS 条目即返回标题/期刊/被引等字段。
 

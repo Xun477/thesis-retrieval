@@ -1,13 +1,13 @@
-# 安装 paper-research（面向 AI agent / 手动）
+# 安装 thesis-retrieval（面向 AI agent / 手动）
 
-你是 AI agent，用户让你安装 `paper-research`。本文档即安装流程，请按顺序执行。每一步都可安全重跑，且都写明了失败时的处理。命令为 POSIX shell（macOS / Linux），需要 Windows 特例的步骤附有说明。
+你是 AI agent，用户让你安装 `thesis-retrieval`。本文档即安装流程，请按顺序执行。每一步都可安全重跑，且都写明了失败时的处理。命令为 POSIX shell（macOS / Linux），需要 Windows 特例的步骤附有说明。
 
-`paper-research` 是统一多源学术文献检索 skill：一次查询跨 **OpenAlex / CrossRef / Semantic Scholar / PubMed / Scopus / Web of Science** 六大库检索，自动去重、按引用/日期排序、支持 JSON 导出，可按 **SCI 中科院分区**与摘要筛选。核心检索**零第三方依赖**（纯 Python 标准库）；仅 WoS 截图+OCR 兜底需要可选依赖。
+`thesis-retrieval` 是统一多源学术文献检索 skill：一次查询跨 **OpenAlex / CrossRef / Semantic Scholar / PubMed / Scopus / Web of Science** 六大库检索，自动去重、按引用/日期排序、支持 JSON 导出，可按 **SCI 中科院分区**与摘要筛选。核心检索**零第三方依赖**（纯 Python 标准库）；仅 WoS 截图+OCR 兜底需要可选依赖。
 
 整个安装分为六步：
 
 1. 找到当前 harness 的 skill 目录。
-2. 把 `paper-research` 文件夹放入其中。
+2. 把 `thesis-retrieval` 文件夹放入其中。
 3. 安装 Python 依赖（可选）。
 4. 配置凭据（可选，默认四个源免 key）。
 5. 运行前配置（首次运行自动生成，无需手动填路径）。
@@ -53,23 +53,23 @@ mkdir -p ~/.claude/skills   # 替换为你对应 harness 的 TARGET
 
 ## 第 2 步：把 skill 文件夹放入 skill 目录
 
-skill 即本仓库中的 `paper-research` 文件夹：`SKILL.md`（AI 执行指令）、`manifest.yaml`（元数据）、`README.md`、`INSTALL.md`（本文档）、`scripts/`（核心检索 + OCR 兜底脚本）、`resources/`（配置模板 + 分区数据）、`docs/`、`references/`。把整个文件夹复制（或符号链接）到 `TARGET`。
+skill 即本仓库中的 `thesis-retrieval` 文件夹：`SKILL.md`（AI 执行指令）、`manifest.yaml`（元数据）、`README.md`、`INSTALL.md`（本文档）、`scripts/`（核心检索 + OCR 兜底脚本）、`resources/`（配置模板 + 分区数据）、`docs/`、`references/`。把整个文件夹复制（或符号链接）到 `TARGET`。
 
 ### 方式 A：从仓库复制（不依赖额外工具）
 
 ```bash
 TARGET=~/.claude/skills                    # 替换为你对应 harness 的目录
-rm -rf "$TARGET/paper-research"
-cp -R "/path/to/paper-research" "$TARGET/paper-research"
+rm -rf "$TARGET/thesis-retrieval"
+cp -R "/path/to/thesis-retrieval" "$TARGET/thesis-retrieval"
 ```
 
 重复执行会覆盖旧安装，等价于刷新。
 
 **若失败**：
-- 源路径错误 → 确认 `paper-research` 文件夹的真实位置。
+- 源路径错误 → 确认 `thesis-retrieval` 文件夹的真实位置。
 - 复制后确认文件落位：
   ```bash
-  ls "$TARGET/paper-research"/SKILL.md "$TARGET/paper-research"/scripts/paper_research.py
+  ls "$TARGET/thesis-retrieval"/SKILL.md "$TARGET/thesis-retrieval"/scripts/thesis_retrieval.py
   ```
   若 `SKILL.md` 或 `scripts/` 缺失，说明复制目标错误，重跑 `cp` 行并检查 `TARGET`。
 
@@ -78,16 +78,16 @@ cp -R "/path/to/paper-research" "$TARGET/paper-research"
 保留仓库源目录、在 `TARGET` 建软链，之后 `git pull` 即自动更新：
 
 ```bash
-ln -s /path/to/paper-research ~/.claude/skills/paper-research
+ln -s /path/to/thesis-retrieval ~/.claude/skills/thesis-retrieval
 ```
 
-> **Windows**：PowerShell 用 `Copy-Item -Recurse -Force "F:\projects\paper-research" "$env:USERPROFILE\.claude\skills\paper-research"`。
+> **Windows**：PowerShell 用 `Copy-Item -Recurse -Force "F:\projects\thesis-retrieval" "$env:USERPROFILE\.claude\skills\thesis-retrieval"`。
 
 ---
 
 ## 第 3 步：安装 Python 依赖
 
-- **核心检索**（`paper_research.py`）：仅 Python 标准库，**无需安装任何包**。需 Python 3.9+。
+- **核心检索**（`thesis_retrieval.py`）：仅 Python 标准库，**无需安装任何包**。需 Python 3.9+。
 - **WoS 截图 OCR 兜底**（`wos_snapshot.py`，可选）：需要 `playwright` + `rapidocr_onnxruntime`。
 
 检查当前环境：
@@ -129,7 +129,7 @@ OpenAlex / CrossRef / Semantic Scholar / PubMed **四个源免费、无需 key**
 复制模板（`config.local.env` 已被 `.gitignore` 忽略，不会入库）：
 
 ```bash
-cd "<TARGET>/paper-research"
+cd "<TARGET>/thesis-retrieval"
 cp resources/config/config.env resources/config/config.local.env
 ```
 
@@ -171,16 +171,16 @@ Scopus / WoS key 的申请步骤见 `docs/Scopus_API申请与使用指南.md` �
 ## 第 6 步：验证
 
 ```bash
-cd "<TARGET>/paper-research"
+cd "<TARGET>/thesis-retrieval"
 
-# 版本（应输出 paper-research 1.0.0）
-python scripts/paper_research.py --version
+# 版本（应输出 thesis-retrieval 1.0.0）
+python scripts/thesis_retrieval.py --version
 
 # 检查 key 配置（四个免费源显示 free，Scopus/WoS 显示是否 set）
-python scripts/paper_research.py --check-keys
+python scripts/thesis_retrieval.py --check-keys
 
 # 实弹一次免费源检索（无 key 也能跑）
-python scripts/paper_research.py "silver nanowire electrode" --sources openalex,crossref --sort cited --limit 5
+python scripts/thesis_retrieval.py "silver nanowire electrode" --sources openalex,crossref --sort cited --limit 5
 
 # 可选：WoS OCR 兜底自测
 python scripts/wos_snapshot.py --selftest
@@ -199,4 +199,4 @@ skill 已安装。重启 Claude Code（或 `/clear`）使新 skill 生效。此�
 
 > 帮我搜一下关于 X 的论文
 
-AI 会自动运行 `python scripts/paper_research.py "<query>"` 跨库检索。用法详见 `README.md`。
+AI 会自动运行 `python scripts/thesis_retrieval.py "<query>"` 跨库检索。用法详见 `README.md`。

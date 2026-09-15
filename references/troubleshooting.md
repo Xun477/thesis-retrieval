@@ -119,7 +119,7 @@
 
 ### skill 未出现在可用列表
 
-**现象**：Claude Code 里看不到 paper-research 技能。
+**现象**：Claude Code 里看不到 thesis-retrieval 技能。
 
 **原因**：未安装或链接失效。
 

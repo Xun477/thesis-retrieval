@@ -6,7 +6,7 @@
 
 ```bash
 # 核心脚本无需第三方依赖，可直接运行
-python scripts/paper_research.py --version
+python scripts/thesis_retrieval.py --version
 
 # 可选：截图 OCR 兜底需要
 pip install playwright rapidocr_onnxruntime
@@ -40,8 +40,8 @@ python scripts/wos_snapshot.py --selftest
 暂无自动化测试套件，但每个脚本都提供运行时自检：
 
 ```bash
-python scripts/paper_research.py --check-keys   # 检查 key 配置
-python scripts/paper_research.py --list-sources # 列出各源信息
+python scripts/thesis_retrieval.py --check-keys   # 检查 key 配置
+python scripts/thesis_retrieval.py --list-sources # 列出各源信息
 python scripts/wos_snapshot.py --selftest       # 自测 OCR
 ```
 
