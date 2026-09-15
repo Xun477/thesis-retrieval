@@ -173,7 +173,7 @@ Scopus / WoS key 的申请步骤见 `docs/Scopus_API申请与使用指南.md` �
 ```bash
 cd "<TARGET>/thesis-retrieval"
 
-# 版本（应输出 thesis-retrieval 1.0.0）
+# 版本（应输出 thesis-retrieval 1.0.1）
 python scripts/thesis_retrieval.py --version
 
 # 检查 key 配置（四个免费源显示 free，Scopus/WoS 显示是否 set）

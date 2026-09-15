@@ -1,5 +1,5 @@
 name: thesis-retrieval
-version: 1.0.0
+version: 1.0.1
 description: >-
   Unified multi-source academic paper search across OpenAlex, CrossRef,
   Semantic Scholar, PubMed, Scopus, and Web of Science with automatic

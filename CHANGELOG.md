@@ -2,6 +2,13 @@
 
 本 skill 的变更记录。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。版本号从 v1.0.0 起进入正式发布。
 
+## [1.0.1] - 2026-09-15
+
+### 变更
+
+- **项目/skill 名称统一为 `thesis-retrieval`**：脚本 `scripts/paper_research.py` → `scripts/thesis_retrieval.py`，manifest / SKILL / README / INSTALL / docs / references / LICENSE 中所有 `paper_research`、`paper-research` 引用同步更新，脚本内部 docstring / UA / 配置注释 / 版本输出同步改名。功能不变，仅名称统一。
+- 版本号同步 1.0.1（脚本 / manifest / README / CHANGELOG）。
+
 ## [1.0.0] - 2026-09-15
 
 ### 新增
