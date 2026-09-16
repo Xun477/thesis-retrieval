@@ -166,6 +166,14 @@ Scopus / WoS key 的申请步骤见 `docs/Scopus_API申请与使用指南.md` �
 
 用户可在首次交互中直接选择，或稍后编辑，或用 `--sources ... --save-sources` / `--filter` / `--zone` 临时覆盖。
 
+> **注意（AI agent / 非交互调用）：** 首次初始化**必须由真人在真实终端完成**（三问式：选库 → 摘要筛选 → SCI 分区）。在 AI agent、管道、计划任务等无交互环境下直接运行，脚本会检测到无人应答并**中止并提示**（打印"需要人工初始化"），**不会**把默认库/偏好静默落盘。因此请先在终端跑一次：
+>
+> ```bash
+> python scripts/thesis_retrieval.py "test"
+> ```
+>
+> 走完三问式确认后，`sources.env` / `preferences.env` 即生成，之后 AI 即可正常调用。
+
 ---
 
 ## 第 6 步：验证
@@ -173,7 +181,7 @@ Scopus / WoS key 的申请步骤见 `docs/Scopus_API申请与使用指南.md` �
 ```bash
 cd "<TARGET>/thesis-retrieval"
 
-# 版本（应输出 thesis-retrieval 1.1.0）
+# 版本（应输出 thesis-retrieval 1.1.1）
 python scripts/thesis_retrieval.py --version
 
 # 检查 key 配置（四个免费源显示 free，Scopus/WoS 显示是否 set）

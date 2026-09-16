@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-thesis-retrieval v1.1.0: Unified multi-source academic paper search.
+thesis-retrieval v1.1.1: Unified multi-source academic paper search.
 
 Interactive source selection:
     Running without --sources opens a numbered multi-select menu before
@@ -33,7 +33,7 @@ Usage:
     python thesis_retrieval.py "silver nanowire liquid metal electrode" --sources openalex,crossref,semantic_scholar,pubmed,scopus,wos --limit 10 --sort cited --out results.json
     python thesis_retrieval.py "silver nanowire" --source wos --limit 5
     python thesis_retrieval.py --check-keys          # verify all API keys
-    python thesis_retrieval.py --version             # show version (1.1.0)
+    python thesis_retrieval.py --version             # show version (1.1.1)
     python thesis_retrieval.py --list-sources        # show sources / credentials / syntax
 
 Environment / config:
@@ -219,18 +219,21 @@ def save_zone_pref(mode: str, min_zone: int) -> None:
 # 选择结果由程序直接写入 resources/config/ 下的配置文件，无需用户手动改。
 
 
-def _ask_choice(prompt: str, options: dict[str, str], default: str) -> str:
+def _ask_choice(prompt: str, options: dict[str, str], default: str) -> str | None:
     """Ask a single multiple-choice question, return the option KEY.
 
     options maps the canonical key (e.g. "1", "2") to a user-visible label
     (e.g. "一区", "二区"). The user may answer with the key, the label, or a
     digit; the matching option's key is returned. `default` is the key used
-    on empty input / EOF.
+    on empty input. Returns None when stdin hits EOF (non-interactive), so
+    callers can skip initialization instead of silently applying a default.
     """
     try:
         raw = input(prompt).strip().lower()
     except EOFError:
-        raw = ""
+        # 非交互环境（AI agent / 管道）：无人应答。返回 None，调用方据此跳过
+        # 初始化而非静默采用默认值，避免把无人确认的偏好落盘。
+        return None
     if raw == "":
         return default
     for key, val in options.items():
@@ -239,13 +242,18 @@ def _ask_choice(prompt: str, options: dict[str, str], default: str) -> str:
     return default
 
 
-def _ask_always_once() -> str:
-    """Second-stage question: 仅此一次 / 以后都是. Returns 'once' or 'always'."""
+def _ask_always_once() -> str | None:
+    """Second-stage question: 仅此一次 / 以后都是.
+
+    Returns 'once' or 'always', or None when stdin is non-interactive (EOF).
+    """
     key = _ask_choice(
         "仅此一次，还是以后都是？[1=仅此一次 / 2=以后都是, 默认 2]: ",
         {"1": "once", "2": "always"},
         "2",
     )
+    if key is None:
+        return None
     return "once" if key == "1" else "always"
 
 
@@ -1044,7 +1052,14 @@ def resolve_sources(args, keys) -> list[str]:
     try:
         raw = input("选择 [1,2,3 / all / Enter]: ").strip()
     except EOFError:
-        raw = ""  # 非交互环境：当作默认
+        # AI agent / 管道 / 计划任务等非交互环境无法弹菜单：中止并提示，绝不自动
+        # 落盘默认库，避免把无人确认的默认持久化。须真人在终端跑过一次初始化。
+        print("\n[需要人工初始化] 本 skill 首次运行需在真实终端由人选择文献库并确认。\n"
+              "请在你的终端运行一次：\n"
+              "    python scripts/thesis_retrieval.py \"test\"\n"
+              "走完三问式初始化后，AI 即可调用。或临时用 --sources 指定库（不落盘）。",
+              file=sys.stderr)
+        return []
 
     if not raw or raw.lower() == "all":
         picks = [s for s in ALL_SOURCES if available_by_key.get(s, True)]
@@ -1127,7 +1142,7 @@ def cmd_list_sources():
     """Print per-source coverage / credentials / tips. Replaces the info table
     that used to live in SKILL.md so agents can query it at runtime."""
     keys = get_keys()
-    print("可用检索源（thesis-retrieval 1.1.0）：")
+    print("可用检索源（thesis-retrieval 1.1.1）：")
     for name in ALL_SOURCES:
         d = SOURCE_DETAILS.get(name, {})
         print(f"\n[{name}]")
@@ -1164,7 +1179,7 @@ def main():
     ap.add_argument("--check-keys", action="store_true", help="Verify API keys and exit")
     ap.add_argument("--list-sources", action="store_true",
                     help="List all sources, their credentials and query syntax, then exit")
-    ap.add_argument("--version", action="version", version="thesis-retrieval 1.1.0")
+    ap.add_argument("--version", action="version", version="thesis-retrieval 1.1.1")
     args = ap.parse_args()
 
     if args.check_keys:
@@ -1197,10 +1212,16 @@ def main():
             "\n是否按摘要自动筛选文献（读摘要判断每篇是否贴合需求）？[y=是 / n=不是, 默认 是]: ",
             {"y": "是", "n": "不是"}, "y",
         )
-        if ans == "y":
+        if ans is None:
+            # 非交互环境（EOF）：本次按摘要筛选，不落盘偏好（首次初始化须真人完成）。
+            filter_pref = "once"
+        elif ans == "y":
             # 第二问：仅此一次 / 以后都是
             filter_pref = _ask_always_once()
-            if filter_pref == "always":
+            if filter_pref is None:
+                # 第二问遇到 EOF：视为仅本次，不落盘。
+                filter_pref = "once"
+            elif filter_pref == "always":
                 save_filter_pref("always")
                 print("已保存：以后每次都按摘要筛选。想改：编辑 resources/config/preferences.env 或 --filter。")
             else:
@@ -1234,15 +1255,20 @@ def main():
             "\nSCI 分区筛选：只保留哪个区及以上的文献？[1=一区 / 2=二区 / 3=三区 / 4=四区 / 0=全部, 默认 二区]: ",
             {"1": "一区", "2": "二区", "3": "三区", "4": "四区", "0": "全部"}, "2",
         )
-        if zc == "0":
+        if zc is None:
+            # 非交互环境（EOF）：本次不按分区筛选，不落盘偏好（首次初始化须真人完成）。
+            zone_min = None
+        elif zc == "0":
             zone_min = None
             print("本次不按分区筛选（不影响以后，下次仍会询问）。")
         else:
             zone_min = int(zc)
             # 第二问：仅此一次 / 以后都是
             zs = _ask_always_once()
-            print(f"将只保留 {zone_min} 区及以上（分区 <= {zone_min}）的文献。")
-            if zs == "always":
+            if zs is None:
+                # 第二问遇到 EOF：视为仅本次，不落盘。
+                pass
+            elif zs == "always":
                 save_zone_pref("always", zone_min)
                 print(f"已保存：以后每次检索都按 {zone_min} 区及以上筛选。"
                       f"想改：编辑 resources/config/preferences.env 的 ZONE_FILTER/ZONE_MIN 行。")

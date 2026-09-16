@@ -22,8 +22,9 @@ compatibility: Python 3.9+; WoS OCR 兜底需 playwright + rapidocr_onnxruntime
 - 单篇深度解读 → `nature-paper-card`；引文验证/MeSH → `nature-academic-search`；PDF/图注 → 专门 skill。
 
 ## 执行步骤
+0. **首次运行（无 `resources/config/sources.env`）须由真人在真实终端完成初始化**（三问式：选库 → 摘要筛选 → SCI 分区），走完后配置落盘。AI agent 若检测到脚本输出"需要人工初始化"，应停下并请用户在终端跑一次 `python scripts/thesis_retrieval.py "test"`，**不要**尝试绕过或用 `--sources` 静默代替初始化。
 1. 运行 `python scripts/thesis_retrieval.py "<query>"`。
-   - 无保存配置（首次）：交互选择文献库，选完自动保存到 `resources/config/sources.env`。
+   - 无保存配置（首次）：交互选择文献库，选完自动保存到 `resources/config/sources.env`（须真人，见上）。
    - 有保存配置：直接用保存的库，不弹菜单。
 2. 需要临时指定库：显式传 `--sources`（覆盖保存配置，仅本次）。
 3. 结果按需加 `--sort cited|date`、`--out file.json`。

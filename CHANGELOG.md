@@ -2,6 +2,23 @@
 
 本 skill 的变更记录。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。版本号从 v1.0.0 起进入正式发布。
 
+## [1.1.1] - 2026-09-16
+
+### 修复
+
+- **AI agent / 非交互调用首次运行卡死/静默落盘默认**：`resolve_sources` 及摘要/分区两阶段询问原在 stdin 无输入（EOF）时静默采用默认值并持久化（如把"以后每次分区筛 2 区"落盘），AI 调用会卡 `input()` 或无人确认即写 config。现改为：
+  - `_ask_choice` / `_ask_always_once` 在 stdin EOF（非交互）时返回 `None`，与"真人回车（返回默认值）"区分。
+  - `resolve_sources` 首次运行遇 EOF：中止并提示"需要人工初始化"，**不落盘默认库**。
+  - 摘要筛选 EOF：本次 `once`、不落盘；第二问 EOF：视为 `once`、不落盘。
+  - 分区筛选 EOF：本次不筛、不落盘；第二问 EOF：仅本次、不落盘。
+  - 首次初始化必须由真人在真实终端完成（三问式），AI 之后复用配置即可调用。
+- 移除不可靠的交互探测（`_is_interactive` / `select.select(stdin)`：Windows 上 `select` 不支持 stdin、Git-Bash 下 `isatty` 恒为 True）。
+
+### 变更
+
+- 文档补充"非交互需人工初始化"说明：SKILL.md（执行步骤第 0 条）、README.md（快速开始）、INSTALL.md（第 5 步提示框）。
+- 版本号同步 1.1.1（脚本 / manifest / README / INSTALL / CHANGELOG）。
+
 ## [1.1.0] - 2026-09-15
 
 ### 新增

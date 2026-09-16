@@ -1,4 +1,4 @@
-# thesis-retrieval (v1.1.0)
+# thesis-retrieval (v1.1.1)
 
 统一多源学术文献检索 Skill。一次查询跨 **OpenAlex / CrossRef / Semantic Scholar / PubMed / Scopus / Web of Science** 六个学术库检索，自动去重、按引用/日期排序，支持 JSON 导出。WoS 独有文献（其他库查不到、也无 DOI）可用截图+OCR 兜底抓取。支持按 **SCI 中科院分区**筛选。
 
@@ -23,6 +23,7 @@
 
 > **开源协议：** 本 skill 以 **MIT** 协议发布，见 [LICENSE](LICENSE)。
 
+> v1.1.1：修复 AI agent / 非交互调用首次运行卡死或静默落盘默认——`_ask_choice` 遇 stdin EOF 返回 None，`resolve_sources` 首次 EOF 中止并提示"需要人工初始化"，摘要/分区询问 EOF 不落盘偏好；首次初始化须真人在终端完成。
 > v1.1.0：首次运行初始化改为「三问式」（选文献库 / 摘要筛选 / SCI 分区，二三问两阶段），选完自动写 config；修复 save_filter_pref 覆盖分区配置的 bug。
 > v1.0.1：项目/skill 名称统一为 thesis-retrieval（脚本、manifest、文档同步改名）。
 > v1.0.0：正式发布版——补全 INSTALL.md 安装指引，文档与版本号同步 1.0.0。
@@ -57,6 +58,11 @@ python scripts/thesis_retrieval.py "silver nanowire liquid metal electrode" --so
 
 # 不指定 --sources：启动前交互式多选要检索哪些库（可多选 / all / 回车默认全部可用）
 python scripts/thesis_retrieval.py "silver nanowire"
+
+# 首次运行：请在真实终端跑一次初始化（三问式：选库 → 摘要筛选 → SCI 分区），
+# 走完后生成 sources.env / preferences.env，AI agent 之后即可直接调用。
+# 在 AI / 管道 / 计划任务等无交互环境下直接运行，脚本会中止并提示"需要人工初始化"，不会静默落盘默认。
+python scripts/thesis_retrieval.py "test"
 
 # 只查 WoS 按引用排序
 python scripts/thesis_retrieval.py "silver nanowire" --sources wos --sort cited
@@ -133,7 +139,7 @@ python scripts/wos_snapshot.py --ocr-only --image screenshot.png
 | `--zone-mode` | 保存的偏好 | 分区筛选模式：`always`（保存为默认，以后都这样）/ `once`（仅本次）/ `off`（本次不用） |
 | `--check-keys` | — | 检查 API key 配置后退出 |
 | `--list-sources` | — | 列出各源覆盖/凭据/查询语法后退出 |
-| `--version` | — | 显示版本号（1.1.0） |
+| `--version` | — | 显示版本号（1.1.1） |
 
 注意：**`--sources` 控制查哪些库，`--source` 只过滤显示**。
 
