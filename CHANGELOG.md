@@ -2,6 +2,20 @@
 
 本 skill 的变更记录。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。版本号从 v1.0.0 起进入正式发布。
 
+## [1.1.2] - 2026-09-16
+
+### 新增
+
+- **初始化启动器 `scripts/init_config.py`**：skill 首次运行（无 `sources.env`）而当前环境非交互（AI agent / 管道 / 计划任务）时，在**真实终端**弹出新窗口跑三问式初始化，真人确认后落盘配置。Windows 用 `PowerShell Start-Process cmd /k`，macOS 用 Terminal.app，Linux 尝试常见终端模拟器；默认轮询等待 `sources.env` 生成（≤5 分钟），`--no-wait` 只弹窗不等待。
+
+### 修复
+
+- Windows 启动分支由 `cmd //c start ...`（Git-Bash 下引号被吞、命令不执行）改为 `powershell -NoProfile -Command "Start-Process cmd -ArgumentList '/k','...'"`，实测可靠弹出并执行。
+
+### 变更
+
+- 版本号同步 1.1.2（脚本 / manifest / README / INSTALL / CHANGELOG）。
+
 ## [1.1.1] - 2026-09-16
 
 ### 修复
