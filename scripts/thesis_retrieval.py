@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-thesis-retrieval v1.0.1: Unified multi-source academic paper search.
+thesis-retrieval v1.1.0: Unified multi-source academic paper search.
 
 Interactive source selection:
     Running without --sources opens a numbered multi-select menu before
@@ -33,7 +33,7 @@ Usage:
     python thesis_retrieval.py "silver nanowire liquid metal electrode" --sources openalex,crossref,semantic_scholar,pubmed,scopus,wos --limit 10 --sort cited --out results.json
     python thesis_retrieval.py "silver nanowire" --source wos --limit 5
     python thesis_retrieval.py --check-keys          # verify all API keys
-    python thesis_retrieval.py --version             # show version (1.0.1)
+    python thesis_retrieval.py --version             # show version (1.1.0)
     python thesis_retrieval.py --list-sources        # show sources / credentials / syntax
 
 Environment / config:
@@ -140,9 +140,16 @@ def load_filter_pref() -> str | None:
 
 
 def save_filter_pref(value: str) -> None:
-    """Persist the abstract-filter preference to resources/config/preferences.env."""
+    """Persist the abstract-filter preference to resources/config/preferences.env.
+
+    Preserves the existing ZONE_FILTER/ZONE_MIN lines so the two settings
+    coexist in the same file (symmetric with save_zone_pref).
+    """
     try:
         PREFERENCES_FILE.parent.mkdir(parents=True, exist_ok=True)
+        cur = _read_env_file(PREFERENCES_FILE)
+        zone_mode = cur.get("ZONE_FILTER", "")
+        zone_min = cur.get("ZONE_MIN", "")
         body = ("# thesis-retrieval 摘要筛选偏好（FILTER_BY_ABSTRACT）\n"
                 "#   always = 以后每次都按摘要筛选（推荐）\n"
                 "#   once   = 仅本次筛选\n"
@@ -150,6 +157,9 @@ def save_filter_pref(value: str) -> None:
                 "#   never  = 以后都不用，也不再询问\n"
                 "# 想修改：改下面这行，或删除本文件后重新初始化，或用 --filter 临时覆盖。\n"
                 f"FILTER_BY_ABSTRACT={value}\n")
+        if zone_mode and zone_min:
+            body += f"ZONE_FILTER={zone_mode}\n"
+            body += f"ZONE_MIN={zone_min}\n"
         PREFERENCES_FILE.write_text(body, encoding="utf-8")
     except OSError as e:
         print(f"[warn] 无法保存筛选偏好: {e}", file=sys.stderr)
@@ -197,6 +207,47 @@ def save_zone_pref(mode: str, min_zone: int) -> None:
         PREFERENCES_FILE.write_text("".join(lines), encoding="utf-8")
     except OSError as e:
         print(f"[warn] 无法保存分区偏好: {e}", file=sys.stderr)
+
+
+# ---------------------------------------------------------------------------
+# First-run interactive init helpers
+# ---------------------------------------------------------------------------
+# 首次运行的初始化交互为「三问式」：
+#   Q1 选择文献库（可多选，选完即自动保存）
+#   Q2 摘要自动筛选（两阶段：是否 → 仅此一次/以后都是，选完自动保存）
+#   Q3 SCI 分区（两阶段：选区 → 仅此一次/以后都是，选完自动保存）
+# 选择结果由程序直接写入 resources/config/ 下的配置文件，无需用户手动改。
+
+
+def _ask_choice(prompt: str, options: dict[str, str], default: str) -> str:
+    """Ask a single multiple-choice question, return the option KEY.
+
+    options maps the canonical key (e.g. "1", "2") to a user-visible label
+    (e.g. "一区", "二区"). The user may answer with the key, the label, or a
+    digit; the matching option's key is returned. `default` is the key used
+    on empty input / EOF.
+    """
+    try:
+        raw = input(prompt).strip().lower()
+    except EOFError:
+        raw = ""
+    if raw == "":
+        return default
+    for key, val in options.items():
+        if raw == key.lower() or raw == val.lower():
+            return key
+    return default
+
+
+def _ask_always_once() -> str:
+    """Second-stage question: 仅此一次 / 以后都是. Returns 'once' or 'always'."""
+    key = _ask_choice(
+        "仅此一次，还是以后都是？[1=仅此一次 / 2=以后都是, 默认 2]: ",
+        {"1": "once", "2": "always"},
+        "2",
+    )
+    return "once" if key == "1" else "always"
+
 
 
 # ---------------------------------------------------------------------------
@@ -1012,17 +1063,9 @@ def resolve_sources(args, keys) -> list[str]:
     if not picks:
         return []
 
-    # 询问是否永久保存（首次初始化）
-    if args.save_sources:
-        save_sources(picks)
-        return picks
-    try:
-        ans = input("是否将这些文献库保存为默认（以后每次都直接用）？[y/N] ").strip().lower()
-    except EOFError:
-        ans = ""
-    if ans in ("y", "yes"):
-        save_sources(picks)
-        print(f"已保存到 resources/config/sources.env。想换库：改该文件、删除后重跑，或加 --sources。")
+    # 首次初始化：选择结果直接自动保存，不再单独询问是否保存
+    save_sources(picks)
+    print(f"已保存到 resources/config/sources.env。想换库：改该文件、删除后重跑，或加 --sources。")
     return picks
 
 
@@ -1084,7 +1127,7 @@ def cmd_list_sources():
     """Print per-source coverage / credentials / tips. Replaces the info table
     that used to live in SKILL.md so agents can query it at runtime."""
     keys = get_keys()
-    print("可用检索源（thesis-retrieval 1.0.1）：")
+    print("可用检索源（thesis-retrieval 1.1.0）：")
     for name in ALL_SOURCES:
         d = SOURCE_DETAILS.get(name, {})
         print(f"\n[{name}]")
@@ -1121,7 +1164,7 @@ def main():
     ap.add_argument("--check-keys", action="store_true", help="Verify API keys and exit")
     ap.add_argument("--list-sources", action="store_true",
                     help="List all sources, their credentials and query syntax, then exit")
-    ap.add_argument("--version", action="version", version="thesis-retrieval 1.0.1")
+    ap.add_argument("--version", action="version", version="thesis-retrieval 1.1.0")
     args = ap.parse_args()
 
     if args.check_keys:
@@ -1145,27 +1188,27 @@ def main():
     # Abstract-based relevance filter preference:
     #   --filter        explicit override (always/once/no/never)
     #   preferences.env saved value
-    #   else first run: ask the user
+    #   else first run: ask the user (two-stage: 是否 → 仅此一次/以后都是)
     filter_pref = args.filter
     if not filter_pref:
         filter_pref = load_filter_pref()
     if not filter_pref:
-        print("\n是否按摘要自动筛选文献（读摘要判断每篇是否贴合需求）？")
-        print("  [1] 以后都是（推荐）   [2] 仅本次   [3] 这次不用   [4] 以后都不用")
-        try:
-            choice = input("选择 [1-4, 默认 1]: ").strip()
-        except EOFError:
-            choice = ""
-        filter_pref = {"1": "always", "2": "once", "3": "no", "4": "never"}.get(choice, "always")
-        if filter_pref in ("always", "never"):
-            save_filter_pref(filter_pref)
+        ans = _ask_choice(
+            "\n是否按摘要自动筛选文献（读摘要判断每篇是否贴合需求）？[y=是 / n=不是, 默认 是]: ",
+            {"y": "是", "n": "不是"}, "y",
+        )
+        if ans == "y":
+            # 第二问：仅此一次 / 以后都是
+            filter_pref = _ask_always_once()
             if filter_pref == "always":
+                save_filter_pref("always")
                 print("已保存：以后每次都按摘要筛选。想改：编辑 resources/config/preferences.env 或 --filter。")
             else:
-                print("已保存：以后都不用摘要筛选，也不再询问。想改：编辑 resources/config/preferences.env 或 --filter。")
+                save_filter_pref("once")
+                print("已保存：仅本次按摘要筛选（下次仍会询问）。")
         else:
-            print("本次" + ("按摘要筛选" if filter_pref == "once" else "不按摘要筛选") +
-                  "（不影响以后，下次仍会询问）。")
+            save_filter_pref("never")
+            print("已保存：不用摘要筛选，也不再询问。想改：编辑 resources/config/preferences.env 或 --filter。")
     elif filter_pref in ("always", "never"):
         save_filter_pref(filter_pref)  # 显式 --filter always/never 也持久化为默认
 
@@ -1186,31 +1229,26 @@ def main():
     elif zone_mode is not None and zone_min is None:
         zone_min = 2  # --zone-mode 未给分区时默认 2 区及以上
     elif zone_mode is None and zone_min is None:
-        # 首次：询问用户
-        print("\n是否按 SCI 中科院分区筛选文献（只保留指定分区及以上的期刊）？")
-        print("  [0] 不限（不筛）   [1] 仅保留 1 区   [2] 2 区及以上（默认）  [3] 3 区及以上  [4] 4 区及以上")
-        try:
-            zc = input("选择分区 [0-4, 默认 2]: ").strip()
-        except EOFError:
-            zc = ""
-        zc = zc if zc in ("0", "1", "2", "3", "4") else ("2" if zc == "" else "0")
+        # 首次：询问用户（两阶段：选区 → 仅此一次/以后都是）
+        zc = _ask_choice(
+            "\nSCI 分区筛选：只保留哪个区及以上的文献？[1=一区 / 2=二区 / 3=三区 / 4=四区 / 0=全部, 默认 二区]: ",
+            {"1": "一区", "2": "二区", "3": "三区", "4": "四区", "0": "全部"}, "2",
+        )
         if zc == "0":
             zone_min = None
-            print("本次不按分区筛选。")
+            print("本次不按分区筛选（不影响以后，下次仍会询问）。")
         else:
             zone_min = int(zc)
-            # 询问是否保存为默认
+            # 第二问：仅此一次 / 以后都是
+            zs = _ask_always_once()
             print(f"将只保留 {zone_min} 区及以上（分区 <= {zone_min}）的文献。")
-            try:
-                zs = input("是否每次都这样？[y/N] ").strip().lower()
-            except EOFError:
-                zs = ""
-            if zs in ("y", "yes"):
+            if zs == "always":
                 save_zone_pref("always", zone_min)
                 print(f"已保存：以后每次检索都按 {zone_min} 区及以上筛选。"
                       f"想改：编辑 resources/config/preferences.env 的 ZONE_FILTER/ZONE_MIN 行。")
             else:
-                print(f"仅本次按 {zone_min} 区及以上筛选（不影响以后，下次仍会询问）。")
+                save_zone_pref("once", zone_min)
+                print(f"已保存：仅本次按 {zone_min} 区及以上筛选（下次仍会询问）。")
     elif zone_mode == "always" and zone_min:
         save_zone_pref("always", zone_min)  # 显式 --zone-mode always 也持久化为默认
 

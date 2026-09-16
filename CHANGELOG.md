@@ -2,6 +2,23 @@
 
 本 skill 的变更记录。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。版本号从 v1.0.0 起进入正式发布。
 
+## [1.1.0] - 2026-09-15
+
+### 新增
+
+- **首次运行初始化改为「三问式」交互**，选完由程序自动写入 config：
+  1. **选择文献库**（可多选：openalex/crossref/semantic_scholar/pubmed/scopus/wos）——选完自动保存到 `sources.env`，不再单独询问"是否保存为默认"。
+  2. **摘要自动筛选**（两阶段：是否 → 仅此一次/以后都是）——选完自动写入 `preferences.env`。
+  3. **SCI 分区**（两阶段：一区/二区/三区/四区/全部 → 仅此一次/以后都是）——选完自动写入 `preferences.env`。
+
+### 修复
+
+- **`save_filter_pref` 覆盖分区配置**：保存摘要偏好时重写整个 `preferences.env`，丢掉 `ZONE_FILTER/ZONE_MIN` 行，导致二次运行时分区偏好丢失、重复询问。现改为保留现有 ZONE 行（与 `save_zone_pref` 保留 FILTER 行对称）。
+
+### 变更
+
+- 版本号同步 1.1.0（脚本 / manifest / README / CHANGELOG）。
+
 ## [1.0.1] - 2026-09-15
 
 ### 变更

@@ -23,7 +23,7 @@ compatibility: Python 3.9+; WoS OCR 兜底需 playwright + rapidocr_onnxruntime
 
 ## 执行步骤
 1. 运行 `python scripts/thesis_retrieval.py "<query>"`。
-   - 无保存配置（首次）：交互选择文献库，并询问是否保存为默认。
+   - 无保存配置（首次）：交互选择文献库，选完自动保存到 `resources/config/sources.env`。
    - 有保存配置：直接用保存的库，不弹菜单。
 2. 需要临时指定库：显式传 `--sources`（覆盖保存配置，仅本次）。
 3. 结果按需加 `--sort cited|date`、`--out file.json`。

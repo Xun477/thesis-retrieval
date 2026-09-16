@@ -1,4 +1,4 @@
-# thesis-retrieval (v1.0.1)
+# thesis-retrieval (v1.1.0)
 
 统一多源学术文献检索 Skill。一次查询跨 **OpenAlex / CrossRef / Semantic Scholar / PubMed / Scopus / Web of Science** 六个学术库检索，自动去重、按引用/日期排序，支持 JSON 导出。WoS 独有文献（其他库查不到、也无 DOI）可用截图+OCR 兜底抓取。支持按 **SCI 中科院分区**筛选。
 
@@ -23,6 +23,7 @@
 
 > **开源协议：** 本 skill 以 **MIT** 协议发布，见 [LICENSE](LICENSE)。
 
+> v1.1.0：首次运行初始化改为「三问式」（选文献库 / 摘要筛选 / SCI 分区，二三问两阶段），选完自动写 config；修复 save_filter_pref 覆盖分区配置的 bug。
 > v1.0.1：项目/skill 名称统一为 thesis-retrieval（脚本、manifest、文档同步改名）。
 > v1.0.0：正式发布版——补全 INSTALL.md 安装指引，文档与版本号同步 1.0.0。
 > v0.9.1：修复 `--save-sources` / `--filter` / `--zone-mode` 持久化失效；README 补 Windows 编码提示。
@@ -120,7 +121,7 @@ python scripts/wos_snapshot.py --ocr-only --image screenshot.png
 | 参数 | 默认 | 说明 |
 |------|------|------|
 | `query` | — | 检索词（位置参数） |
-| `--sources` | 保存的配置 | 参与**检索**的源，逗号分隔：`openalex,crossref,semantic_scholar,pubmed,scopus,wos`。不传时用保存配置（首次运行会交互初始化并询问是否保存） |
+| `--sources` | 保存的配置 | 参与**检索**的源，逗号分隔：`openalex,crossref,semantic_scholar,pubmed,scopus,wos`。不传时用保存配置（首次运行会交互初始化并自动保存） |
 | `--save-sources` | — | 把本次选择写入 `resources/config/sources.env` 作为默认 |
 | `--source` | — | 只**显示**来自某源的结果，不影响检索范围 |
 | `--limit` | 10 | 每源最大结果数（Scopus ≤25，其他 ≤50） |
@@ -132,20 +133,20 @@ python scripts/wos_snapshot.py --ocr-only --image screenshot.png
 | `--zone-mode` | 保存的偏好 | 分区筛选模式：`always`（保存为默认，以后都这样）/ `once`（仅本次）/ `off`（本次不用） |
 | `--check-keys` | — | 检查 API key 配置后退出 |
 | `--list-sources` | — | 列出各源覆盖/凭据/查询语法后退出 |
-| `--version` | — | 显示版本号（1.0.1） |
+| `--version` | — | 显示版本号（1.1.0） |
 
 注意：**`--sources` 控制查哪些库，`--source` 只过滤显示**。
 
 ## 文献库配置（持久化默认）
 
-- **首次运行**：未保存配置时，交互选择文献库并询问"是否保存为默认"（`y` 保存，`N`/回车仅本次）。
+- **首次运行**：未保存配置时，交互选择文献库，选完**自动保存**为默认（`resources/config/sources.env`），不再单独询问。
 - **之后运行**：直接用保存的库（`resources/config/sources.env`），不再询问。
 - **想换默认库**：编辑 `resources/config/sources.env` 的 `SOURCES=` 行，或删除该文件重新初始化，或 `--sources ... --save-sources` 覆盖。
 - 完整说明见 [`docs/文献库配置说明.md`](docs/文献库配置说明.md)。
 
 ## 摘要筛选（按摘要判断是否符合需求）
 
-- **首次运行**：询问是否按摘要自动筛选——`1 以后都是 / 2 仅本次 / 3 这次不用 / 4 以后都不用`，选 1/4 持久化到 `resources/config/preferences.env`。
+- **首次运行**：先问"是否按摘要自动筛选？[是/不是]"，选"是"后再问"仅此一次/以后都是"，选择自动持久化到 `resources/config/preferences.env`。
 - **筛选时 AI 行为**：逐条读 abstract，标注 `[符合] / [不确定] / [排除]`。
 - **摘要覆盖**：OpenAlex/CrossRef/Semantic Scholar 免费返回；Scopus/PubMed/WoS 默认无（跨源按 DOI 兜底补齐）。
 - **想改偏好**：编辑 `resources/config/preferences.env` 的 `FILTER_BY_ABSTRACT=` 行（always/once/no/never），或删除重选，或 `--filter` 临时覆盖。
@@ -153,7 +154,7 @@ python scripts/wos_snapshot.py --ocr-only --image screenshot.png
 
 ## SCI 分区筛选（中科院分区）
 
-- **首次运行**：询问是否按 SCI 中科院分区筛选——`0 不限 / 1 仅 1 区 / 2 2 区及以上 / 3 3 区及以上 / 4 4 区及以上`，随后问「是否每次都这样？[y/N]」，选 `y` 保存到 `resources/config/preferences.env`。
+- **首次运行**：先问"只保留哪个区及以上？[一区/二区/三区/四区/全部]"，选分区后再问"仅此一次/以后都是"，选择自动持久化到 `resources/config/preferences.env`。
 - **分区数据**：本地映射表 `resources/data/journal_zones.json`（期刊名 → 分区 1-4）。需按研究方向维护，见 [`docs/SCI分区筛选说明.md`](docs/SCI分区筛选说明.md)。
 - **筛选行为**：只保留分区 ≤ `ZONE_MIN` 的文献；未知期刊**保留**并标注 `分区=?`，不误删。
 - **临时覆盖**：`--zone 1 --zone-mode once`（仅本次）、`--zone 2 --zone-mode always`（保存为默认）、`--zone-mode off`（本次不用）。
