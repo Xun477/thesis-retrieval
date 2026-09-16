@@ -1,221 +1,98 @@
-# 安装 thesis-retrieval（面向 AI agent / 手动）
+# Install thesis-retrieval (for AI agents)
 
-你是 AI agent，用户让你安装 `thesis-retrieval`。本文档即安装流程，请按顺序执行。每一步都可安全重跑，且都写明了失败时的处理。命令为 POSIX shell（macOS / Linux），需要 Windows 特例的步骤附有说明。
+`thesis-retrieval` is a multi-source academic paper search skill (OpenAlex / CrossRef / Semantic Scholar / PubMed / Scopus / Web of Science). This document is written for AI agents: install it fast, no human-facing fluff.
 
-`thesis-retrieval` 是统一多源学术文献检索 skill：一次查询跨 **OpenAlex / CrossRef / Semantic Scholar / PubMed / Scopus / Web of Science** 六大库检索，自动去重、按引用/日期排序、支持 JSON 导出，可按 **SCI 中科院分区**与摘要筛选。核心检索**零第三方依赖**（纯 Python 标准库）；仅 WoS 截图+OCR 兜底需要可选依赖。
+## TL;DR
 
-整个安装分为六步：
+```bash
+# 1. Locate the skill dir for this harness (usually global):
+ls -d ~/.claude ~/.codex ~/.agents 2>/dev/null   # pick the one that exists
 
-1. 找到当前 harness 的 skill 目录。
-2. 把 `thesis-retrieval` 文件夹放入其中。
-3. 安装 Python 依赖（可选）。
-4. 配置凭据（可选，默认四个源免 key）。
-5. 运行前配置（首次运行自动生成，无需手动填路径）。
-6. 验证。
+# 2. Clone into it (recommended; git pull = update):
+git clone https://github.com/Xun477/thesis-retrieval ~/.claude/skills/thesis-retrieval
 
----
+# 3. Verify:
+cd ~/.claude/skills/thesis-retrieval
+python scripts/thesis_retrieval.py --version    # expect: thesis-retrieval 1.1.4
+python scripts/thesis_retrieval.py --check-keys # expect: 4 free sources + scopus/wos key status
+```
 
-## 第 1 步：找到当前 harness 的 skill 目录
+Done. Core search needs Python 3.9+ only (stdlib, zero third-party deps).
 
-skill 是 harness 启动时读取的文件夹，各 harness 从固定位置读取：
+## Steps
 
-| Harness | Skill 目录（`TARGET`） |
+### 1. Target directory
+
+| Harness | Skill dir |
 | :-- | :-- |
 | Claude Code | `~/.claude/skills/` |
 | Codex | `~/.codex/skills/` |
-| Pi, OpenCode | `~/.agents/skills/` |
+| Pi / OpenCode | `~/.agents/skills/` |
 
-安装到用户主目录下的这个**全局**目录，使 skill 在每个项目都可用。除非用户明确要求仅限当前项目，否则**不要**装到项目本地 `.claude/skills`。
+Install into the **global** dir above unless the user explicitly wants project-local. Windows: `%USERPROFILE%\.claude\skills\`.
 
-不确定当前是哪个 harness 时，按已存在的配置目录判断：
+### 2. Get the skill
 
-```bash
-ls -d ~/.claude ~/.codex ~/.agents 2>/dev/null
-```
-
-- `~/.claude` 存在 → 用 `~/.claude/skills/`
-- `~/.codex` 存在 → 用 `~/.codex/skills/`
-- `~/.agents` 存在 → 用 `~/.agents/skills/`
-
-创建目录作为安装目标：
+Preferred — clone (updatable via `git pull`):
 
 ```bash
-mkdir -p ~/.claude/skills   # 替换为你对应 harness 的 TARGET
-```
-
-**若失败**：权限错误说明你指向的目录不可写。确认路径在用户主目录下（`echo $HOME`），不是系统路径。
-
-> **Windows**：`~` 即用户配置文件。目录为
-> `%USERPROFILE%\.claude\skills\`、`%USERPROFILE%\.codex\skills\`、
-> `%USERPROFILE%\.agents\skills\`。用 PowerShell `mkdir "$env:USERPROFILE\.claude\skills"` 创建。
-
----
-
-## 第 2 步：把 skill 文件夹放入 skill 目录
-
-skill 即本仓库中的 `thesis-retrieval` 文件夹：`SKILL.md`（AI 执行指令）、`manifest.yaml`（元数据）、`README.md`、`INSTALL.md`（本文档）、`scripts/`（核心检索 + OCR 兜底脚本）、`resources/`（配置模板 + 分区数据）、`docs/`、`references/`。把整个文件夹复制（或符号链接）到 `TARGET`。
-
-### 方式 0：git clone 远端仓库（推荐，便于后续 `git pull` 更新）
-
-远端仓库：`https://github.com/Xun477/thesis-retrieval`（MIT 协议）。
-
-```bash
-TARGET=~/.claude/skills                    # 替换为你对应 harness 的目录
 git clone https://github.com/Xun477/thesis-retrieval "$TARGET/thesis-retrieval"
 ```
 
-之后更新只需在 `$TARGET/thesis-retrieval` 里 `git pull`。
-
-### 方式 A：从仓库复制（不依赖额外工具）
+Alternative — copy an existing checkout:
 
 ```bash
-TARGET=~/.claude/skills                    # 替换为你对应 harness 的目录
-rm -rf "$TARGET/thesis-retrieval"
-cp -R "/path/to/thesis-retrieval" "$TARGET/thesis-retrieval"
+cp -R /path/to/thesis-retrieval "$TARGET/thesis-retrieval"
 ```
 
-重复执行会覆盖旧安装，等价于刷新。
-
-**若失败**：
-- 源路径错误 → 确认 `thesis-retrieval` 文件夹的真实位置。
-- 复制后确认文件落位：
-  ```bash
-  ls "$TARGET/thesis-retrieval"/SKILL.md "$TARGET/thesis-retrieval"/scripts/thesis_retrieval.py
-  ```
-  若 `SKILL.md` 或 `scripts/` 缺失，说明复制目标错误，重跑 `cp` 行并检查 `TARGET`。
-
-### 方式 B：符号链接（仅 macOS / Linux）
-
-保留仓库源目录、在 `TARGET` 建软链，之后 `git pull` 即自动更新：
+Verify files landed:
 
 ```bash
-ln -s /path/to/thesis-retrieval ~/.claude/skills/thesis-retrieval
+ls "$TARGET/thesis-retrieval"/SKILL.md "$TARGET/thesis-retrieval"/scripts/thesis_retrieval.py
 ```
 
-> **Windows**：PowerShell 用 `Copy-Item -Recurse -Force "F:\projects\thesis-retrieval" "$env:USERPROFILE\.claude\skills\thesis-retrieval"`。
+### 3. Credentials (optional)
 
----
+4 sources are key-free: openalex / crossref / semantic_scholar / pubmed.
+Scopus and WoS need keys; without them they are skipped automatically.
 
-## 第 3 步：安装 Python 依赖
-
-- **核心检索**（`thesis_retrieval.py`）：仅 Python 标准库，**无需安装任何包**。需 Python 3.9+。
-- **WoS 截图 OCR 兜底**（`wos_snapshot.py`，可选）：需要 `playwright` + `rapidocr_onnxruntime`。
-
-检查当前环境：
+Keys are read from env vars first, then `resources/config/config.env`:
 
 ```bash
-python3 --version
-python3 -c "import playwright, rapidocr_onnxruntime; print('ocr deps ok')" 2>/dev/null || echo "ocr deps missing (optional)"
+# optional but recommended (raise rate limits):
+export OPENALEX_MAILTO=you@example.com
+export SCOPUS_API_KEY=...   # only if user has one
+export WOS_API_KEY=...      # only if user has one; approval takes 1-3+ business days
 ```
 
-按需安装：
+Or copy the template and fill it in:
 
 ```bash
-pip install playwright rapidocr_onnxruntime
+cp resources/config/config.env resources/config/config.local.env   # git-ignored
 ```
 
-首次运行 `wos_snapshot.py` 时，Playwright 优先使用系统 Chrome/Edge（自动查找），或 `playwright install chromium` 安装自带内核。
+### 4. First run (mandatory, human step)
 
-**若失败**：`pip: command not found` 说明 Python 未加入 PATH——从 python.org 安装 Python 3.9+ 后重试；权限错误说明用户 site 不可写，用 `pip install --user ...`。
-
-> **Windows**：`python3` 可能是 `python`。用 `python --version` 与 `python -m pip install playwright rapidocr_onnxruntime`。
-
----
-
-## 第 4 步：配置凭据（可选，默认四个源免 key）
-
-OpenAlex / CrossRef / Semantic Scholar / PubMed **四个源免费、无需 key**；Scopus 与 WoS 需要 key，缺 key 时脚本自动跳过。脚本从多个位置自动发现凭据（环境变量 → `resources/config/config.env` → `~/.config/pybliometrics.cfg` → `~/.config/lit-dl/credentials.json`），**不填 key 也能先跑通免费源**。
-
-| 源 | 是否需 key | 建议配置 |
-| :-- | :-- | :-- |
-| OpenAlex | 否 | 可选 `OPENALEX_MAILTO`（进 polite pool 提升额度） |
-| CrossRef | 否 | 可选 `CROSSREF_MAILTO` |
-| Semantic Scholar | 否 | 可选 `S2_API_KEY`（提升共享限流） |
-| PubMed | 否 | 可选 `NCBI_API_KEY`（限流 3→10 rps） |
-| Scopus | **是** | `SCOPUS_API_KEY` |
-| WoS | **是** | `WOS_API_KEY` |
-
-### 4a. 推荐：填 `resources/config/config.local.env`
-
-复制模板（`config.local.env` 已被 `.gitignore` 忽略，不会入库）：
+The first run **must** be done by a human in a real terminal — a three-question init (pick sources → abstract filter → SCI zone) writes `sources.env` / `preferences.env`:
 
 ```bash
-cd "<TARGET>/thesis-retrieval"
-cp resources/config/config.env resources/config/config.local.env
+python scripts/thesis_retrieval.py "test"
 ```
 
-用编辑器填好 `SCOPUS_API_KEY=` / `WOS_API_KEY=` / `OPENALEX_MAILTO=` 等行。
-
-> **Windows (PowerShell)**：`Copy-Item resources\config\config.env resources\config\config.local.env`
-
-### 4b. 或：环境变量（优先于配置文件）
+If running in a non-interactive environment (agent Bash / pipe) with no config, the script aborts with "需要人工初始化" — open a real terminal and run the command above, or invoke the launcher:
 
 ```bash
-export SCOPUS_API_KEY="..."
-export WOS_API_KEY="..."
-export OPENALEX_MAILTO="you@example.com"
+python scripts/init_config.py   # opens a real terminal window and waits
 ```
 
-**持久化**（Windows PowerShell）：
+Do **not** work around it with `--sources` (that skips init and persists nothing).
 
-```powershell
-[System.Environment]::SetEnvironmentVariable('SCOPUS_API_KEY', '...', 'User')
-[System.Environment]::SetEnvironmentVariable('WOS_API_KEY', '...', 'User')
-[System.Environment]::SetEnvironmentVariable('OPENALEX_MAILTO', 'you@example.com', 'User')
-```
-
-Scopus / WoS key 的申请步骤见 `docs/Scopus_API申请与使用指南.md` 与 `docs/WoS_API申请与使用指南.md`。
-
----
-
-## 第 5 步：运行前配置（首次运行自动生成）
-
-本 skill **没有**需要手动填的路径配置。运行时会自动生成两个本地配置（均已 `.gitignore`，不入库）：
-
-- `resources/config/sources.env` —— 首次运行时交互选择文献库，询问"是否保存为默认"，选 `y` 生成。
-- `resources/config/preferences.env` —— 首次运行时交互选择摘要筛选偏好（1-4）与 SCI 分区偏好（0-4）后生成。
-
-用户可在首次交互中直接选择，或稍后编辑，或用 `--sources ... --save-sources` / `--filter` / `--zone` 临时覆盖。
-
-> **注意（AI agent / 非交互调用）：** 首次初始化**必须由真人在真实终端完成**（三问式：选库 → 摘要筛选 → SCI 分区）。在 AI agent、管道、计划任务等无交互环境下直接运行，脚本会检测到无人应答并**中止并提示**（打印"需要人工初始化"），**不会**把默认库/偏好静默落盘。因此请先在终端跑一次：
->
-> ```bash
-> python scripts/thesis_retrieval.py "test"
-> ```
->
-> 走完三问式确认后，`sources.env` / `preferences.env` 即生成，之后 AI 即可正常调用。
-
----
-
-## 第 6 步：验证
+### 5. Verify
 
 ```bash
-cd "<TARGET>/thesis-retrieval"
-
-# 版本（应输出 thesis-retrieval 1.1.3）
-python scripts/thesis_retrieval.py --version
-
-# 检查 key 配置（四个免费源显示 free，Scopus/WoS 显示是否 set）
-python scripts/thesis_retrieval.py --check-keys
-
-# 实弹一次免费源检索（无 key 也能跑）
-python scripts/thesis_retrieval.py "silver nanowire electrode" --sources openalex,crossref --sort cited --limit 5
-
-# 可选：WoS OCR 兜底自测
-python scripts/wos_snapshot.py --selftest
+cd "$TARGET/thesis-retrieval"
+python scripts/thesis_retrieval.py --version      # thesis-retrieval 1.1.4
+python scripts/thesis_retrieval.py --check-keys   # all source key status
 ```
 
-**若失败**：
-- `ModuleNotFoundError` → 第 3 步依赖缺失（仅 OCR 路径需要）。
-- 终端中文乱码 → Windows 下加 `PYTHONIOENCODING=utf-8` 前缀运行。
-- 某源报错到 stderr → 单源失败不影响其余源（缺 key 自动跳过属正常）。
-
----
-
-## 完成
-
-skill 已安装。重启 Claude Code（或 `/clear`）使新 skill 生效。此后用户只需说：
-
-> 帮我搜一下关于 X 的论文
-
-AI 会自动运行 `python scripts/thesis_retrieval.py "<query>"` 跨库检索。用法详见 `README.md`。
+Optional extras: WoS screenshot+OCR fallback needs `pip install playwright rapidocr_onnxruntime`; see SKILL.md.

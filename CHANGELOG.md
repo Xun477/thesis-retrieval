@@ -2,6 +2,13 @@
 
 本 skill 的变更记录。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。版本号从 v1.0.0 起进入正式发布。
 
+## [1.1.4] - 2026-09-16
+
+### 变更
+
+- INSTALL.md 重写为英文、纯 AI agent 导向精简版：TL;DR 快速安装 + 5 步（定位目录 / 获取 / 凭据 / 首次运行须真人 / 验证），删除面向人工阅读的长篇说明。
+- 版本号同步 1.1.4（脚本 / manifest / README / INSTALL / CHANGELOG）。
+
 ## [1.1.3] - 2026-09-16
 
 ### 变更

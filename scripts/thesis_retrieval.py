@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-thesis-retrieval v1.1.3: Unified multi-source academic paper search.
+thesis-retrieval v1.1.4: Unified multi-source academic paper search.
 
 Interactive source selection:
     Running without --sources opens a numbered multi-select menu before
@@ -33,7 +33,7 @@ Usage:
     python thesis_retrieval.py "silver nanowire liquid metal electrode" --sources openalex,crossref,semantic_scholar,pubmed,scopus,wos --limit 10 --sort cited --out results.json
     python thesis_retrieval.py "silver nanowire" --source wos --limit 5
     python thesis_retrieval.py --check-keys          # verify all API keys
-    python thesis_retrieval.py --version             # show version (1.1.3)
+    python thesis_retrieval.py --version             # show version (1.1.4)
     python thesis_retrieval.py --list-sources        # show sources / credentials / syntax
 
 Environment / config:
@@ -1142,7 +1142,7 @@ def cmd_list_sources():
     """Print per-source coverage / credentials / tips. Replaces the info table
     that used to live in SKILL.md so agents can query it at runtime."""
     keys = get_keys()
-    print("可用检索源（thesis-retrieval 1.1.3）：")
+    print("可用检索源（thesis-retrieval 1.1.4）：")
     for name in ALL_SOURCES:
         d = SOURCE_DETAILS.get(name, {})
         print(f"\n[{name}]")
@@ -1179,7 +1179,7 @@ def main():
     ap.add_argument("--check-keys", action="store_true", help="Verify API keys and exit")
     ap.add_argument("--list-sources", action="store_true",
                     help="List all sources, their credentials and query syntax, then exit")
-    ap.add_argument("--version", action="version", version="thesis-retrieval 1.1.3")
+    ap.add_argument("--version", action="version", version="thesis-retrieval 1.1.4")
     args = ap.parse_args()
 
     if args.check_keys:
