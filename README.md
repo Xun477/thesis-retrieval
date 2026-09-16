@@ -1,4 +1,4 @@
-# thesis-retrieval (v1.1.2)
+# thesis-retrieval (v1.1.3)
 
 统一多源学术文献检索 Skill。一次查询跨 **OpenAlex / CrossRef / Semantic Scholar / PubMed / Scopus / Web of Science** 六个学术库检索，自动去重、按引用/日期排序，支持 JSON 导出。WoS 独有文献（其他库查不到、也无 DOI）可用截图+OCR 兜底抓取。支持按 **SCI 中科院分区**筛选。
 
@@ -23,6 +23,7 @@
 
 > **开源协议：** 本 skill 以 **MIT** 协议发布，见 [LICENSE](LICENSE)。
 
+> v1.1.3：INSTALL.md 新增「方式 0：git clone 远端仓库」`https://github.com/Xun477/thesis-retrieval`（便于 `git pull` 更新）；版本号同步 1.1.3。
 > v1.1.2：新增初始化启动器 `scripts/init_config.py`——非交互环境下自动在真实终端弹出三问式初始化；Windows 启动改用 PowerShell `Start-Process`（修复 `start` 引号被吞）。
 > v1.1.1：修复 AI agent / 非交互调用首次运行卡死或静默落盘默认——`_ask_choice` 遇 stdin EOF 返回 None，`resolve_sources` 首次 EOF 中止并提示"需要人工初始化"，摘要/分区询问 EOF 不落盘偏好；首次初始化须真人在终端完成。
 > v1.1.0：首次运行初始化改为「三问式」（选文献库 / 摘要筛选 / SCI 分区，二三问两阶段），选完自动写 config；修复 save_filter_pref 覆盖分区配置的 bug。
@@ -140,7 +141,7 @@ python scripts/wos_snapshot.py --ocr-only --image screenshot.png
 | `--zone-mode` | 保存的偏好 | 分区筛选模式：`always`（保存为默认，以后都这样）/ `once`（仅本次）/ `off`（本次不用） |
 | `--check-keys` | — | 检查 API key 配置后退出 |
 | `--list-sources` | — | 列出各源覆盖/凭据/查询语法后退出 |
-| `--version` | — | 显示版本号（1.1.2） |
+| `--version` | — | 显示版本号（1.1.3） |
 
 注意：**`--sources` 控制查哪些库，`--source` 只过滤显示**。
 

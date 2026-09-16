@@ -55,6 +55,17 @@ mkdir -p ~/.claude/skills   # 替换为你对应 harness 的 TARGET
 
 skill 即本仓库中的 `thesis-retrieval` 文件夹：`SKILL.md`（AI 执行指令）、`manifest.yaml`（元数据）、`README.md`、`INSTALL.md`（本文档）、`scripts/`（核心检索 + OCR 兜底脚本）、`resources/`（配置模板 + 分区数据）、`docs/`、`references/`。把整个文件夹复制（或符号链接）到 `TARGET`。
 
+### 方式 0：git clone 远端仓库（推荐，便于后续 `git pull` 更新）
+
+远端仓库：`https://github.com/Xun477/thesis-retrieval`（MIT 协议）。
+
+```bash
+TARGET=~/.claude/skills                    # 替换为你对应 harness 的目录
+git clone https://github.com/Xun477/thesis-retrieval "$TARGET/thesis-retrieval"
+```
+
+之后更新只需在 `$TARGET/thesis-retrieval` 里 `git pull`。
+
 ### 方式 A：从仓库复制（不依赖额外工具）
 
 ```bash
@@ -181,7 +192,7 @@ Scopus / WoS key 的申请步骤见 `docs/Scopus_API申请与使用指南.md` �
 ```bash
 cd "<TARGET>/thesis-retrieval"
 
-# 版本（应输出 thesis-retrieval 1.1.2）
+# 版本（应输出 thesis-retrieval 1.1.3）
 python scripts/thesis_retrieval.py --version
 
 # 检查 key 配置（四个免费源显示 free，Scopus/WoS 显示是否 set）

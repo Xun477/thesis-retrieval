@@ -2,6 +2,13 @@
 
 本 skill 的变更记录。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。版本号从 v1.0.0 起进入正式发布。
 
+## [1.1.3] - 2026-09-16
+
+### 变更
+
+- INSTALL.md 新增「方式 0：git clone 远端仓库」：`https://github.com/Xun477/thesis-retrieval`（MIT 协议），便于后续 `git pull` 更新。
+- 版本号同步 1.1.3（脚本 / manifest / README / INSTALL / CHANGELOG）。
+
 ## [1.1.2] - 2026-09-16
 
 ### 新增
