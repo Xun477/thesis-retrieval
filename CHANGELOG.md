@@ -2,6 +2,22 @@
 
 本 skill 的变更记录。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。版本号从 v1.0.0 起进入正式发布。
 
+## [1.1.6] - 2026-09-17
+
+### 新增
+
+- **检索方法论总纲 `references/search-methodology.md`**：面向 AI agent 的系统性文献检索稳定流程（PICO(S) 问题拆解 → 检索式构建（概念簇同义词 + 布尔逻辑）→ 多库执行 + 引文追踪雪球法 + 去重 → 三步筛选漏斗 → 持续跟踪）。
+- **4 个分库检索方案文档**（语法不同按库读取）：
+  - `references/search-openalex-crossref-s2.md`：OpenAlex / CrossRef / Semantic Scholar（简单三库，普通关键词）。
+  - `references/search-pubmed.md`：PubMed（字段标签 `[tiab]`/`[mh]` MeSH、布尔、两段式 esearch+esummary、3/10 rps 限流）。
+  - `references/search-scopus.md`：Scopus（`TITLE-ABS-KEY` 高级语法、`PUBYEAR`、每源 25 条上限）。
+  - `references/search-wos.md`：WoS（`TS=(...)` 自动包装、字段标签原样传递、顶层 OR 自动拆分、`DO=(...)` 精确核验、截图+OCR 兜底指引）。
+- **SKILL.md 仅加一行引用**，不内联内容（新增「检索方案」小节指向以上 5 个文件），保持主指令精简。
+
+### 变更
+
+- 版本号同步 1.1.6（脚本 / manifest / README / INSTALL / CHANGELOG）。
+
 ## [1.1.5] - 2026-09-17
 
 ### 新增

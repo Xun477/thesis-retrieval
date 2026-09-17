@@ -1,4 +1,4 @@
-# thesis-retrieval (v1.1.5)
+# thesis-retrieval (v1.1.6)
 
 ![](assets/cover.jpg)
 
@@ -25,6 +25,7 @@
 
 > **开源协议：** 本 skill 以 **MIT** 协议发布，见 [LICENSE](LICENSE)。
 
+> v1.1.6：新增检索方法论总纲与 4 个分库检索方案文档（`references/`），SKILL.md 仅加引用不内联；版本号同步 1.1.6。
 > v1.1.5：新增仓库封面图 `assets/cover.jpg`（README 顶部展示）；版本号同步 1.1.5。
 > v1.1.4：INSTALL.md 重写为英文、纯 AI agent 导向精简版（TL;DR + 5 步，无需人工阅读的说明）；版本号同步 1.1.4。
 > v1.1.3：INSTALL.md 新增「方式 0：git clone 远端仓库」`https://github.com/Xun477/thesis-retrieval`（便于 `git pull` 更新）；版本号同步 1.1.3。
@@ -145,7 +146,7 @@ python scripts/wos_snapshot.py --ocr-only --image screenshot.png
 | `--zone-mode` | 保存的偏好 | 分区筛选模式：`always`（保存为默认，以后都这样）/ `once`（仅本次）/ `off`（本次不用） |
 | `--check-keys` | — | 检查 API key 配置后退出 |
 | `--list-sources` | — | 列出各源覆盖/凭据/查询语法后退出 |
-| `--version` | — | 显示版本号（1.1.5） |
+| `--version` | — | 显示版本号（1.1.6） |
 
 注意：**`--sources` 控制查哪些库，`--source` 只过滤显示**。
 
@@ -217,5 +218,11 @@ thesis-retrieval/
 │   ├── 摘要筛选说明.md
 │   └── 文献库配置说明.md
 └── references/
-    └── chinese-sources.md # 中文文献库接入说明（深参考）
+    ├── search-methodology.md          # 检索方法论总纲（PICO→检索式→引文追踪→筛选→跟踪）
+    ├── search-openalex-crossref-s2.md # 分库方案：OpenAlex/CrossRef/S2（简单三库）
+    ├── search-pubmed.md               # 分库方案：PubMed（字段标签/MeSH）
+    ├── search-scopus.md               # 分库方案：Scopus（TITLE-ABS-KEY 高级语法）
+    ├── search-wos.md                  # 分库方案：WoS（TS= / 布尔 / OR 拆分）
+    ├── chinese-sources.md             # 中文文献库接入说明（深参考）
+    └── troubleshooting.md             # 故障排查手册
 ```

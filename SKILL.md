@@ -29,6 +29,10 @@ compatibility: Python 3.9+; WoS OCR 兜底需 playwright + rapidocr_onnxruntime
 2. 需要临时指定库：显式传 `--sources`（覆盖保存配置，仅本次）。
 3. 结果按需加 `--sort cited|date`、`--out file.json`。
 
+## 检索方案（按需读取，不内联）
+- 系统检索方法论（PICO 拆解 → 检索式构建 → 多库 → 引文追踪 → 筛选 → 跟踪）：`references/search-methodology.md`。
+- 各库检索方案（语法不同，按库读取）：OpenAlex/CrossRef/S2 → `references/search-openalex-crossref-s2.md`；PubMed → `references/search-pubmed.md`；Scopus → `references/search-scopus.md`；WoS → `references/search-wos.md`。
+
 ## 命令约束
 - `--sources` 控制检索哪些库（临时）；`--save-sources` 把选择写入 `resources/config/sources.env` 作为默认；`--source` 只过滤显示。
 - 前四源免费免 key：openalex/crossref/semantic_scholar/pubmed。scopus/wos 需 key，缺 key 自动跳过。
