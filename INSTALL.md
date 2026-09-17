@@ -13,7 +13,7 @@ git clone https://github.com/Xun477/thesis-retrieval ~/.claude/skills/thesis-ret
 
 # 3. Verify:
 cd ~/.claude/skills/thesis-retrieval
-python scripts/thesis_retrieval.py --version    # expect: thesis-retrieval 1.1.4
+python scripts/thesis_retrieval.py --version    # expect: thesis-retrieval 1.1.5
 python scripts/thesis_retrieval.py --check-keys # expect: 4 free sources + scopus/wos key status
 ```
 
@@ -91,7 +91,7 @@ Do **not** work around it with `--sources` (that skips init and persists nothing
 
 ```bash
 cd "$TARGET/thesis-retrieval"
-python scripts/thesis_retrieval.py --version      # thesis-retrieval 1.1.4
+python scripts/thesis_retrieval.py --version      # thesis-retrieval 1.1.5
 python scripts/thesis_retrieval.py --check-keys   # all source key status
 ```
 

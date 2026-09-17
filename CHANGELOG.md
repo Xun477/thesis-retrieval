@@ -2,6 +2,13 @@
 
 本 skill 的变更记录。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。版本号从 v1.0.0 起进入正式发布。
 
+## [1.1.5] - 2026-09-17
+
+### 新增
+
+- **仓库封面图 `assets/cover.jpg`**：README 顶部展示，作为仓库社交预览图（GitHub 自动使用）。
+- 版本号同步 1.1.5（脚本 / manifest / README / INSTALL / CHANGELOG）。
+
 ## [1.1.4] - 2026-09-16
 
 ### 变更
